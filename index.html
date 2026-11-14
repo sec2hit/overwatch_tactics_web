@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overwatch Picker · 5v5 Role Queue</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23F99E1A'><circle cx='12' cy='12' r='10'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0B0E14;--card:rgba(17,22,33,.92);--line:rgba(255,255,255,.08);--or:#F99E1A;--cy:#00C3FF;--blue:#3d8bff;--red:#ff4655;--grn:#2ee6a6;--tx:#e6ebf2;--mut:#8b97a8}
+*{box-sizing:border-box}
+h1,h2,h3,h4,p,ul{margin:0}svg{display:block}input,select{font-family:inherit}
+html{scrollbar-color:#2a3446 transparent;scrollbar-width:thin}
+body{margin:0;min-height:100vh;color:var(--tx);font-family:Inter,system-ui,sans-serif;background-color:var(--bg);
+ background-image:radial-gradient(900px 480px at 8% -10%,rgba(0,195,255,.12),transparent 60%),radial-gradient(800px 480px at 100% 0,rgba(249,158,26,.11),transparent 60%),linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+ background-size:auto,auto,34px 34px,34px 34px;background-attachment:fixed}
+.ow{font-family:Rajdhani,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.sk{display:inline-block;transform:skewX(-8deg)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:3px}
+.cut{clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0}
+.wrap{max-width:1280px;margin:0 auto;padding:14px}
+
+/* Topbar */
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:42px;height:42px;display:grid;place-items:center;background:linear-gradient(135deg,var(--or),#ff7a00);color:#0B0E14;clip-path:polygon(25% 3%,75% 3%,100% 50%,75% 97%,25% 97%,0 50%)}
+.logo svg{width:22px;height:22px}
+.brand h1{margin:0;font-size:1.6rem;line-height:1}
+.brand h1 b{color:var(--or)}
+.brand p{margin:2px 0 0;font-size:.72rem;color:var(--mut);letter-spacing:.12em;text-transform:uppercase}
+.btn-main{padding:10px 20px;background:linear-gradient(90deg,var(--or),#ffb84d);color:#0B0E14;font-size:.95rem;transition:transform 75ms ease-out}
+.btn-main:hover{background:linear-gradient(90deg,#ffb84d,#ffc76b);transform:translateY(-1px)}
+
+/* Layout */
+.dash{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:14px;align-items:start}
+.left{display:flex;flex-direction:column;gap:12px}
+.right{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-right:2px}
+@media(max-width:960px){.dash{grid-template-columns:1fr}.right{position:static;max-height:none;overflow:visible}}
+
+/* Mapa */
+.map-banner{position:relative;overflow:hidden;padding:16px;min-height:150px;display:flex;flex-direction:column;justify-content:space-between;gap:12px}
+.map-banner::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.05) 0 2px,transparent 2px 22px);pointer-events:none}
+.map-banner::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(5,8,12,.65));pointer-events:none}
+.map-banner>*{position:relative;z-index:1}
+.map-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.map-type{font-size:.8rem;padding:2px 10px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.2)}
+.map-name{font-size:2rem;line-height:1;margin:6px 0 4px;text-shadow:0 2px 12px rgba(0,0,0,.6)}
+.map-feat{font-size:.78rem;color:#d3dbe6;max-width:46ch}
+/* Selector visual de mapas — AAA Esports */
+.map-picker{padding:11px 12px 12px;position:relative;overflow:hidden;border-top:2px solid var(--cy)}
+.map-picker::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.025) 0 1px,transparent 1px 20px);pointer-events:none}
+.map-picker>*{position:relative;z-index:1}
+.mp-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.mp-title{display:flex;align-items:center;gap:7px;font:700 .95rem Rajdhani,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:#fff}
+.mp-title .ri{width:15px;height:15px;color:var(--cy)}
+.mp-title small{font:400 .66rem Inter,sans-serif;text-transform:none;letter-spacing:0;color:var(--mut)}
+.map-current{display:inline-flex;align-items:center;gap:7px;min-width:0;padding:4px 6px 4px 9px;background:rgba(6,9,15,.55);border:1px solid var(--line);border-left:3px solid var(--or);font:700 .8rem Rajdhani,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:#fff}
+.map-current small{font:400 .66rem Inter,sans-serif;text-transform:none;letter-spacing:0;color:var(--mut);white-space:nowrap}
+.map-current.empty{border-left-color:#4a5566;color:var(--mut)}
+.map-current .dot-m{flex:none;width:7px;height:7px;transform:rotate(45deg);background:var(--or);box-shadow:0 0 8px rgba(249,158,26,.55)}
+.map-current.empty .dot-m{background:#4a5566;box-shadow:none}
+.mp-clear{flex:none;padding:0 4px;color:var(--mut);font-size:.78rem;line-height:1}
+.mp-clear:hover{color:var(--red)}
+.map-search{display:flex;align-items:center;gap:8px;margin:0 0 9px;padding:5px 8px;background:rgba(6,9,15,.6);border:1px solid var(--line);border-left:2px solid var(--cy);clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px));transition:background-color 75ms linear,border-color 75ms linear}
+.map-search:focus-within{border-color:rgba(0,195,255,.55);border-left-color:var(--cy);box-shadow:inset 0 0 0 1px rgba(0,195,255,.18)}
+.ms-ic{display:inline-flex;flex:none;width:15px;height:15px;color:var(--cy)}
+.ms-ic svg{width:100%;height:100%}
+.map-search-input{flex:1;min-width:0;padding:3px 0;background:none;border:0;outline:none;color:var(--tx);font:500 .88rem Inter,sans-serif}
+.map-search-input::placeholder{color:var(--mut);letter-spacing:.02em}
+.ms-clear{display:grid;place-items:center;flex:none;width:20px;height:20px;color:var(--mut);font-size:.78rem;line-height:1;background:rgba(255,255,255,.06);transition:background-color 75ms linear,color 75ms linear}
+.ms-clear:hover{color:#fff;background:rgba(255,70,85,.35)}
+.ms-clear[hidden]{display:none}
+.map-empty{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:13px 14px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-left:3px solid var(--cy)}
+.map-empty .me-ic{display:grid;place-items:center;flex:none;width:34px;height:34px;background:rgba(0,195,255,.12);color:var(--cy);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+.map-empty .me-ic svg{width:18px;height:18px}
+.map-empty b{display:block;font-size:.95rem;line-height:1.15;color:#fff;margin-bottom:2px}
+.map-empty p{margin:0;font-size:.78rem;line-height:1.4;color:var(--mut)}
+.map-empty .me-actions{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}
+.map-empty .btn-sec{padding:6px 12px;font-size:.82rem}
+.mode-tab.zero{opacity:.4}
+.map-grid.no-results{max-height:none;overflow:visible}
+.mode-tabs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px}
+.mode-tab{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--mut);font:700 .74rem Rajdhani,sans-serif;text-transform:uppercase;letter-spacing:.06em;transition:background-color 75ms linear,border-color 75ms linear,color 75ms linear}
+.mode-tab b{min-width:15px;padding:0 3px;text-align:center;background:rgba(255,255,255,.1);color:inherit;font:600 .58rem Inter,sans-serif;border-radius:1px}
+.mode-tab:hover{background:rgba(255,255,255,.09);color:#fff;border-color:var(--mc)}
+.mode-tab.on{background:var(--mc);border-color:var(--mc);color:#06090f;box-shadow:inset 0 0 0 1px var(--mc)}
+.mode-tab.on b{background:rgba(6,9,15,.28);color:#06090f}
+.mdot{flex:none;width:6px;height:6px;transform:rotate(45deg);background:var(--mc);box-shadow:0 0 6px var(--mc)}
+.mode-tab.on .mdot{background:#06090f;box-shadow:none}
+.map-grid{display:flex;flex-direction:column;gap:11px;max-height:326px;overflow:auto;padding-right:4px;scrollbar-color:#2a3446 transparent;scrollbar-width:thin}
+.map-grid.single{max-height:none;overflow:visible;padding-right:0}
+.map-group{min-width:0}
+.map-group-h{display:flex;align-items:center;gap:7px;margin:0 0 6px;font-family:Rajdhani,sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--mc);position:sticky;top:0;z-index:2;padding:2px 0;background:linear-gradient(180deg,#0f141d,#0f141d 70%,rgba(15,20,29,.88))}
+.map-group-h .mg-count{font:400 .62rem Inter,sans-serif;text-transform:none;letter-spacing:0;color:var(--mut)}
+.map-group-h::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.16),transparent)}
+.map-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:6px}
+.map-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:7px 9px;text-align:left;background:rgba(25,32,44,.94);border:1px solid var(--line);border-left:2px solid var(--mc);clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px));transition:background-color 75ms linear,border-color 75ms linear;overflow:hidden}
+.map-card::before{content:"";position:absolute;top:0;right:0;width:45%;height:100%;background:linear-gradient(90deg,transparent,var(--mc));opacity:.06;pointer-events:none}
+.map-card:hover{background:#232b39;border-color:var(--mc)}
+.map-card:focus-visible{outline:2px solid var(--cy);outline-offset:2px}
+.mc-name{padding-right:20px;font-size:.92rem;line-height:1.05;color:#dbe3ee;letter-spacing:.02em}
+.map-card:hover .mc-name{color:#fff}
+.mc-tags{display:flex;flex-wrap:wrap;gap:3px}
+.mc-tags i{font:700 .5rem Rajdhani,sans-serif;font-style:normal;text-transform:uppercase;letter-spacing:.08em;padding:1px 4px;color:#06090f;opacity:.9}
+.map-card.on{background:linear-gradient(120deg,rgba(249,158,26,.2),rgba(21,27,38,.9) 75%);border-color:var(--or);box-shadow:inset 0 0 0 1px rgba(249,158,26,.5)}
+.map-card.on .mc-name{color:#fff}
+.mc-check{position:absolute;top:5px;right:6px;display:none;width:14px;height:14px;place-items:center;background:var(--or);color:#0B0E14;font:800 .55rem Inter,sans-serif;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.map-card.on .mc-check{display:grid}
+@media(max-width:420px){.map-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Rol */
+.roles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:10px}
+.rolebtn{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;background:rgba(255,255,255,.05);color:var(--mut);font-size:1rem;transition:background-color 75ms linear,color 75ms linear}
+.rolebtn .ri{width:18px;height:18px;color:var(--rc)}
+.rolebtn:hover{background:rgba(255,255,255,.1);color:var(--tx)}
+.rolebtn.on{background:linear-gradient(90deg,var(--rc),rgba(255,255,255,.1));color:#fff;box-shadow:inset 0 0 0 1px var(--rc)}
+.rolebtn.on .ri{color:#fff}
+.ri{display:inline-flex}.ri svg{width:100%;height:100%}
+.lbl{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 0;font-size:.7rem;color:var(--mut);letter-spacing:.14em;text-transform:uppercase}
+
+/* Formato de partida (5v5 Role Queue / 6v6 Open Queue) */
+.fmt-card{padding:0 0 12px;border-top:2px solid var(--or)}
+.fmt-card.openq{border-top-color:var(--cy)}
+.fmt-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px}
+.fmtbtn{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px 12px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-left:3px solid var(--line);text-align:left;transition:background-color 75ms linear,border-color 75ms linear}
+.fmtbtn:hover{background:rgba(255,255,255,.1);border-color:var(--mc)}
+.fmtbtn.on{background:linear-gradient(100deg,var(--mca),rgba(17,22,33,.92) 70%);border-color:var(--mc);border-left-color:var(--mc)}
+.fmtbtn .fb-k{font-size:1rem;line-height:1.1;color:#fff}
+.fmtbtn .fb-d{font-size:.72rem;line-height:1.3;color:var(--mut)}
+.fmtbtn.on .fb-d{color:#cdd5e0}
+.fmtbtn .fb-n{font-size:.66rem;letter-spacing:.1em;color:var(--mc);margin-top:2px}
+.fmtbtn .fb-check{position:absolute;top:8px;right:9px;display:none;width:14px;height:14px;place-items:center;background:var(--mc);color:#0B0E14;font:800 .55rem Inter,sans-serif;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.fmtbtn.on .fb-check{display:grid}
+@media(max-width:520px){.fmt-toggle{grid-template-columns:1fr}}
+
+/* Modo Solo / Grupo (Party) */
+.party-card{padding:0 0 10px;border-top:2px solid var(--cy)}
+.party-card.party-on{border-top-color:var(--or)}
+.party-toggle{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 12px 8px}
+.modebtn{display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 8px;background:rgba(255,255,255,.05);color:var(--mut);font-size:.92rem;transition:background-color 75ms linear,color 75ms linear;--mc:var(--cy);border:1px solid var(--line)}
+.modebtn.party{--mc:var(--or)}
+.modebtn .ri{width:16px;height:16px;color:var(--mc)}
+.modebtn:hover{background:rgba(255,255,255,.1);color:var(--tx)}
+.modebtn.on{background:linear-gradient(90deg,var(--mc),rgba(255,255,255,.08));color:#fff;box-shadow:inset 0 0 0 1px var(--mc)}
+.modebtn.on .ri{color:#fff}
+.party-panel{display:none;padding:2px 12px 0}
+.party-panel.open{display:block}
+.party-size{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 9px}
+.party-size .sz{display:grid;place-items:center;min-width:32px;height:28px;padding:0 8px;background:rgba(255,255,255,.05);border:1px solid var(--line);font:700 .9rem Rajdhani,sans-serif;color:var(--mut)}
+.party-size .sz.on{background:rgba(249,158,26,.18);border-color:var(--or);color:var(--or)}
+.mates-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:8px}
+.mate-role{padding:7px 8px 8px;background:rgba(255,255,255,.035);border:1px solid var(--line);border-top:2px solid var(--or)}
+.mate-role .mh{display:flex;align-items:center;justify-content:space-between;font:700 .7rem Rajdhani,sans-serif;text-transform:uppercase;letter-spacing:.1em;color:var(--mut)}
+.mate-role .mh b{color:#fff;font-size:.72rem}
+.mate-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:6px}
+.rpick{display:flex;align-items:center;justify-content:center;gap:4px;padding:5px 2px;background:rgba(255,255,255,.04);border:1px solid transparent;color:var(--mut);font:700 .68rem Rajdhani,sans-serif;text-transform:uppercase;letter-spacing:.04em;transition:background-color 75ms linear,color 75ms linear}
+.rpick .ri{width:12px;height:12px}
+.rpick:hover{background:rgba(255,255,255,.09);color:var(--tx)}
+.rpick.on{background:rgba(249,158,26,.16);border-color:rgba(249,158,26,.6);color:#fff}
+
+/* Equipos */
+.team{--ac:var(--blue);padding:0 0 10px;border-top:2px solid var(--ac)}
+.team.red{--ac:var(--red)}
+.team-h{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 8px}
+.team-h h2{margin:0;font-size:1.15rem;color:var(--ac)}
+.you{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;padding:2px 10px;background:rgba(61,139,255,.15);border:1px solid rgba(61,139,255,.45);color:#cfe1ff;font-family:Rajdhani;font-weight:700;text-transform:uppercase}
+.you .ri{width:14px;height:14px}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;padding:0 10px}
+.slot{display:flex;align-items:center;background:rgba(255,255,255,.04);border:1px solid var(--line);border-left:3px solid var(--ac);transition:background-color 75ms linear,border-color 75ms linear}
+.slot:hover{background:rgba(255,255,255,.08);border-color:var(--ac)}
+.slot.open-slot:not(.filled){border-left-color:var(--cy)}
+.slot-main{flex:1;display:flex;align-items:center;gap:10px;padding:6px;text-align:left;min-width:0}
+.sl-txt{display:flex;flex-direction:column;min-width:0}
+.sl-txt small{font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
+.sl-txt b{font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot:not(.filled) .sl-txt b{color:var(--mut)}
+.x{padding:0 10px;color:var(--mut);align-self:stretch}.x:hover{color:var(--red)}
+
+/* Avatar */
+.avatar{position:relative;flex:none;overflow:hidden;display:grid;place-items:center;width:52px;height:52px;clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,9px 100%,0 calc(100% - 9px))}
+.avatar.md{width:68px;height:68px}.avatar.lg{width:96px;height:96px}
+.avatar::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.16) 0 28%,transparent 28% 100%)}
+.avatar .mono{font-family:Rajdhani;font-weight:700;font-size:1.45rem;transform:skewX(-8deg);text-shadow:0 2px 6px rgba(0,0,0,.65);letter-spacing:.02em}
+.avatar.md .mono{font-size:1.9rem}.avatar.lg .mono{font-size:2.6rem}
+.rico{position:absolute;top:3px;left:3px;width:17px;height:17px;padding:2px;background:rgba(5,8,12,.65);border-radius:3px;display:flex}
+.rico svg{width:100%;height:100%}
+.avatar.lg .rico{width:22px;height:22px}
+.atag{position:absolute;left:0;right:0;bottom:0;display:flex}
+.atag i{flex:1;text-align:center;font:700 8px/12px Rajdhani,sans-serif;font-style:normal;text-transform:uppercase;letter-spacing:.05em;color:#06090f}
+.avatar.sm .atag i{font-size:0;line-height:4px}
+.avatar.empty{background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.22);clip-path:none}
+.avatar.empty::before{display:none}.avatar.empty .rico{background:transparent}
+.avatar .plus{font-size:1.5rem;color:var(--mut);font-weight:300}
+.a-Brawl{background:linear-gradient(90deg,#ff4655,#F99E1A)}
+.a-Dive{background:linear-gradient(90deg,#00C3FF,#a66bff)}
+.a-Poke{background:linear-gradient(90deg,#2ee6a6,#3d8bff)}
+.badges{display:flex;gap:4px;flex-wrap:wrap}
+.arch{display:inline-block;padding:1px 8px;font:700 .72rem Rajdhani,sans-serif;text-transform:uppercase;letter-spacing:.06em;color:#06090f;clip-path:polygon(0 0,calc(100% - 5px) 0,100% 5px,100% 100%,5px 100%,0 calc(100% - 5px))}
+
+/* Recomendaciones */
+.rec{display:grid;grid-template-columns:34px auto minmax(0,1fr) auto;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 12px;background:var(--card);border:1px solid var(--line);border-left:3px solid transparent;transition:background-color 75ms linear,border-color 75ms linear}
+.rec:hover{border-color:rgba(249,158,26,.5)}
+.rec.on{border-left-color:var(--or);background:linear-gradient(90deg,rgba(249,158,26,.16),rgba(21,27,38,.85) 60%)}
+.rank{font-size:1.7rem;color:var(--mut);line-height:1}
+.rec.on .rank,.rec:first-child .rank{color:var(--or)}
+.rec-name{font-size:1.35rem;line-height:1.05}
+.bar{height:6px;margin:8px 0 4px;background:rgba(255,255,255,.08);overflow:hidden;clip-path:polygon(0 0,100% 0,calc(100% - 4px) 100%,0 100%)}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--or),var(--cy));transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.brk{font-size:.68rem;color:var(--mut);letter-spacing:.04em}
+.pct{font:700 2rem/1 Rajdhani,sans-serif;color:var(--or)}
+.pct small{font-size:1rem;color:var(--mut)}
+
+.sec{--c:var(--cy);padding:12px 14px;border-left:3px solid var(--c)}
+.sec h3{margin:0 0 8px;font-size:1.05rem;color:var(--c);display:flex;align-items:center;gap:8px}
+.sec h3 .ri{width:16px;height:16px}
+.sec.win{--c:var(--or);background:linear-gradient(90deg,rgba(249,158,26,.12),var(--card))}
+.sec.syn{--c:var(--grn)}.sec.thr{--c:var(--red)}
+.tac{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:.86rem;line-height:1.45;color:#cdd5e0}
+.tac li{position:relative;padding-left:16px}
+.tac li::before{content:"";position:absolute;left:2px;top:.55em;width:6px;height:6px;background:var(--c);transform:rotate(45deg)}
+.tac b{color:#fff;font-weight:600}
+.mates{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.mate{display:flex;align-items:center;gap:8px;padding:4px 10px 4px 4px;background:rgba(255,255,255,.05);border:1px solid var(--line)}
+.mate b{font-size:.95rem}
+.note{font-size:.82rem;color:var(--mut);margin:0}
+.thr-main{display:flex;gap:12px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{padding:3px 12px;font:700 .8rem Rajdhani,sans-serif;text-transform:uppercase;letter-spacing:.06em;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--mut)}
+.chip.on{background:var(--or);color:#0B0E14;border-color:var(--or)}
+.empty-state{padding:26px;text-align:center}
+.empty-state h2{margin:0 0 8px;font-size:1.4rem;color:var(--or)}
+.empty-state p{margin:0;color:var(--mut);font-size:.88rem}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.steps div{padding:10px;background:rgba(255,255,255,.04);border:1px solid var(--line);font-size:.78rem;color:var(--mut)}
+.steps b{display:block;color:var(--cy);font-family:Rajdhani;font-size:1.3rem}
+
+/* Modal */
+.overlay{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:12px;background:rgba(5,8,12,.88)}
+.overlay.open{display:flex}
+.modal{width:min(860px,100%);max-height:88vh;display:flex;flex-direction:column;background:rgba(16,21,30,.97);border:1px solid var(--line);border-top:2px solid var(--or)}
+.m-head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px;border-bottom:1px solid var(--line)}
+.m-title{display:flex;align-items:center;gap:8px;font-size:1.2rem;flex:1 1 100%}
+.m-title .ri{width:20px;height:20px}
+.search{flex:1;min-width:160px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--tx);padding:9px 12px;outline:none;font-size:.9rem}
+.search:focus{border-color:var(--cy)}
+.m-close{padding:8px 14px;background:rgba(255,255,255,.08);font-weight:700}
+.m-close:hover{background:var(--red)}
+.hgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px;padding:12px;overflow-y:auto}
+.hcard{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;background:rgba(26,33,48,.94);border:1px solid transparent;transition:background-color 75ms linear,border-color 75ms linear}
+.hcard:hover{background:#332815;border-color:var(--or)}
+.hcard b{font-size:.98rem;text-align:center;line-height:1.1}
+.none{grid-column:1/-1;color:var(--mut);font-size:.88rem;padding:10px}
+/* AFK / Throwing */
+.slot.afk{border-left-color:#f9d71a;background:repeating-linear-gradient(135deg,rgba(249,215,26,.10) 0 8px,rgba(130,130,130,.12) 8px 16px)}
+.avatar.afk{background:linear-gradient(145deg,#5b5b5b,#2b2b2b);box-shadow:inset 0 0 0 1px rgba(249,215,26,.55)}
+.avatar.afk::before{display:none}
+.afk-ic{display:inline-flex;width:56%;height:56%;color:#f9d71a}
+.afkq{display:flex;align-items:center;padding:0 9px;align-self:stretch;color:#f9d71a;opacity:.5;transition:background-color 75ms linear,opacity 75ms linear}
+.afkq:hover{opacity:1;background:rgba(249,215,26,.12)}
+.afkq svg{width:16px;height:16px}
+.hcard.afk-card{background:repeating-linear-gradient(135deg,rgba(249,215,26,.12) 0 8px,rgba(130,130,130,.15) 8px 16px);border-color:rgba(249,215,26,.45)}
+.hcard.afk-card b{color:#f9d71a}
+.afk-sub{font-size:.68rem;color:var(--mut)}
+/* TL;DR */
+.tldr{padding:12px 14px;border-left:3px solid var(--or);background:linear-gradient(90deg,rgba(249,158,26,.15),var(--card) 70%)}
+.tldr h2{margin:0 0 6px;font-size:1.05rem;color:var(--or)}
+.tl-row{display:flex;gap:10px;align-items:baseline;padding:5px 0;font-size:.92rem;line-height:1.4;color:#d7deea}
+.tl-k{flex:none;min-width:66px;text-align:center;padding:1px 8px;font:700 .72rem Rajdhani,sans-serif;text-transform:uppercase;letter-spacing:.08em;background:var(--cy);color:#06090f;clip-path:polygon(0 0,calc(100% - 5px) 0,100% 5px,100% 100%,5px 100%,0 calc(100% - 5px))}
+.tl-k.or{background:var(--or)}
+.tl-v b{color:#fff}
+.tl-alert{display:flex;gap:10px;align-items:center;margin-top:8px;padding:9px 11px;background:linear-gradient(90deg,rgba(255,70,85,.30),rgba(249,215,26,.20));border:1px solid rgba(255,70,85,.65);font-size:.86rem;line-height:1.4;color:#fff}
+.tl-alert .ri{width:22px;height:22px;color:#f9d71a;flex:none}
+/* Micro-subtítulos, ayudas y guía */
+.sub{font:400 .76rem/1.4 Inter,sans-serif;color:var(--mut);text-transform:none;letter-spacing:0}
+.sub.pad{padding:0 12px 8px}
+.mini{font-size:.74rem;color:#d3dbe6;margin-bottom:6px;display:block}
+.help{position:relative;display:inline-grid;place-items:center;width:16px;height:16px;border-radius:50%;border:1px solid var(--cy);color:var(--cy);font:700 .68rem Rajdhani,sans-serif;cursor:help;vertical-align:middle;margin-left:6px;text-transform:none;letter-spacing:0;font-style:normal;outline:none}
+.help::after{content:attr(data-tip);position:absolute;z-index:40;left:50%;top:calc(100% + 8px);transform:translateX(-50%);width:max-content;max-width:min(270px,72vw);padding:8px 10px;background:#101722;border:1px solid rgba(0,195,255,.55);color:#dfe7f2;font:400 .75rem/1.45 Inter,sans-serif;text-align:left;opacity:0;pointer-events:none;transition:opacity 100ms linear;white-space:normal}
+.help:hover::after,.help:focus::after{opacity:1}
+.help.l::after{left:0;transform:none}.help.r::after{left:auto;right:0;transform:none}
+.btn-main small{display:block;font:400 .62rem Inter,sans-serif;text-transform:none;letter-spacing:0;opacity:.8;margin-top:1px}
+.guide{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:-4px 0 14px;padding:8px 12px;background:rgba(21,27,38,.7);border:1px solid var(--line);border-left:3px solid var(--cy)}
+.guide .st{display:flex;align-items:center;gap:8px;color:var(--mut);font:700 .9rem Rajdhani,sans-serif;text-transform:uppercase;letter-spacing:.05em}
+.guide .st b{display:grid;place-items:center;width:22px;height:22px;background:rgba(255,255,255,.08);color:var(--mut);clip-path:polygon(0 0,calc(100% - 5px) 0,100% 5px,100% 100%,5px 100%,0 calc(100% - 5px))}
+.guide .st.cur{color:#fff}.guide .st.cur b{background:var(--cy);color:#06090f}
+.guide .st.done{color:#cfd8e6}.guide .st.done b{background:var(--or);color:#06090f}
+.guide .arrow{color:var(--mut);font-size:.8rem}
+.idealbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:0 2px}
+.idealbar .sub{flex:1 1 100%}
+.btn-sec{padding:9px 16px;background:rgba(0,195,255,.14);box-shadow:inset 0 0 0 1px rgba(0,195,255,.6);color:var(--cy);font-size:.95rem;transition:background-color 75ms linear,color 75ms linear}
+.btn-sec:hover{background:rgba(0,195,255,.28)}
+.hcard.afk-card{grid-column:span 2}
+.afk-sub{font-size:.7rem;color:#d9d3a5;text-align:center;line-height:1.3}
+.afkq span{font:700 .65rem Rajdhani,sans-serif;margin-left:4px;text-transform:uppercase}
+.tl-alert.pn{background:linear-gradient(90deg,rgba(0,195,255,.25),rgba(249,158,26,.18));border-color:rgba(0,195,255,.6)}
+.tl-alert.pt{background:linear-gradient(90deg,rgba(46,230,166,.25),rgba(0,195,255,.16));border-color:rgba(46,230,166,.6)}
+.tl-alert.pt .ri{color:var(--grn)}
+.sec .sub{margin:-4px 0 8px}
+.tldr .sub{margin:-2px 0 6px}
+/* Panic */
+.panic{border-top:2px solid var(--or);padding-bottom:10px}
+.panic h2{color:var(--or)}
+.panic-list{display:flex;flex-wrap:wrap;gap:8px;padding:2px 12px 0}
+.pchip{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;background:rgba(255,255,255,.05);border:1px solid var(--line);transition:background-color 75ms linear,border-color 75ms linear}
+.pchip:hover{border-color:var(--red)}
+.pchip.on{background:rgba(255,70,85,.2);border-color:var(--red)}
+.pchip.clear{padding:8px 14px;color:var(--mut)}
+/* Equipo ideal */
+.ideal{padding:12px 14px;border-left:3px solid var(--cy);background:linear-gradient(90deg,rgba(0,195,255,.14),var(--card) 70%)}
+.ideal-h{display:flex;justify-content:space-between;align-items:center}
+.ideal-h h2{font-size:1.05rem;color:var(--cy)}
+.ideal-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:10px 0}
+.ideal-row.open{grid-template-columns:repeat(6,minmax(0,1fr))}
+.ideal-row .col{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 2px;background:rgba(255,255,255,.04);text-align:center}
+.ideal-row .col b{font-size:.85rem;line-height:1.1}.ideal-row .col small{font-size:.62rem;color:var(--mut);text-transform:uppercase;letter-spacing:.08em}
+.ideal .avatar.md{width:56px;height:56px}
+@media(max-width:520px){.ideal-row,.ideal-row.open{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* 1v1 — Duel Lab */
+.duel{margin-top:14px;padding:0 0 14px;border-top:2px solid var(--cy);overflow:hidden}
+.duel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 16px 8px;background:linear-gradient(100deg,rgba(0,195,255,.10),transparent 55%)}
+.duel h2{font-size:1.2rem;color:var(--cy)}
+.duel > .sub{padding:0 16px}
+.duel-badge{flex:none;padding:3px 9px;border:1px solid rgba(249,158,26,.45);background:rgba(249,158,26,.08);color:var(--or);font-size:.66rem;letter-spacing:.14em}
+.duel-pickers{display:grid;grid-template-columns:minmax(0,1fr) 56px minmax(0,1fr);gap:10px;align-items:stretch;padding:12px 16px 0}
+.duel-slot{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-height:92px;padding:9px 12px;background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.02));border:1px solid var(--line);text-align:left;overflow:hidden;transition:background-color 75ms linear,border-color 75ms linear;--ac:var(--or)}
+.duel-slot.b{--ac:var(--cy)}
+.duel-slot::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--ac)}
+.duel-slot:hover{border-color:rgba(249,158,26,.5);background:rgba(249,158,26,.07)}
+.duel-slot.b:hover{border-color:rgba(0,195,255,.5);background:rgba(0,195,255,.07)}
+.ds-kicker{font-size:.6rem;letter-spacing:.16em;color:var(--mut)}
+.ds-content{display:flex;align-items:center;gap:10px;width:100%}
+.ds-avatar{flex:none}
+.ds-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ds-txt b{font-size:1.08rem;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ds-txt small{font:600 .62rem Inter,sans-serif;letter-spacing:.07em;text-transform:uppercase;color:var(--mut)}
+.ds-change{margin-left:auto;font-size:.62rem;letter-spacing:.08em;color:var(--ac);opacity:.85;white-space:nowrap}
+.duel-slot:not(.filled) .ds-txt b{color:var(--mut)}
+.duel-slot:not(.filled) .ds-change{color:var(--cy)}
+.duel-swap{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--mut);transition:background-color 75ms linear,border-color 75ms linear,color 75ms linear}
+.duel-swap:hover{color:#fff;border-color:var(--or);background:rgba(249,158,26,.13)}
+.duel-swap svg{width:20px;height:20px}
+.duel-swap small{font:700 .58rem Rajdhani,sans-serif;letter-spacing:.1em;text-transform:uppercase}
+.duel-out{padding:12px 16px 0}
+.duel-arena{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 88px minmax(0,1fr);gap:10px;align-items:stretch;padding:10px;background:linear-gradient(110deg,rgba(249,158,26,.08),rgba(0,195,255,.07));border:1px solid var(--line);overflow:hidden}
+.duel-arena::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.035) 0 1px,transparent 1px 18px);pointer-events:none}
+.duel-arena>*{position:relative;z-index:1}
+.duel-fighter{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0;padding:10px;background:rgba(7,10,16,.52);border:1px solid var(--line);border-top:2px solid var(--or)}
+.duel-fighter.b{align-items:flex-end;text-align:right;border-top-color:var(--cy)}
+.df-top{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%}
+.df-tag{font-size:.6rem;letter-spacing:.14em;color:var(--or)}
+.duel-fighter.b .df-tag{color:var(--cy)}
+.duel-fighter.b .df-top{flex-direction:row-reverse}
+.duel-fighter.b .badges{justify-content:flex-end}
+.df-role{display:flex;align-items:center;gap:4px;font:700 .6rem Rajdhani,sans-serif;text-transform:uppercase;letter-spacing:.08em}
+.df-role .ri{width:11px;height:11px}
+.df-main{display:flex;align-items:center;gap:11px;min-width:0}
+.duel-fighter.b .df-main{flex-direction:row-reverse}
+.df-id{min-width:0}
+.df-id b{display:block;font-size:1.35rem;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.df-pct{font:700 2.7rem/.9 Rajdhani,sans-serif;color:var(--or);letter-spacing:-.02em}
+.duel-fighter.b .df-pct{color:var(--cy)}
+.df-pct small{font-size:1rem;color:var(--mut)}
+.df-win{align-self:flex-start;padding:2px 7px;border:1px solid rgba(255,255,255,.15);color:var(--mut);font:700 .56rem Rajdhani,sans-serif;letter-spacing:.12em;text-transform:uppercase}
+.duel-fighter.b .df-win{align-self:flex-end}
+.df-win.hot{color:#06090f;background:var(--or);border-color:var(--or)}
+.duel-fighter.b .df-win.hot{background:var(--cy);border-color:var(--cy)}
+.duel-core{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center}
+.duel-vs{font-size:1.3rem;color:#fff;text-shadow:0 0 20px rgba(249,158,26,.55)}
+.duel-edge{font:700 .56rem Rajdhani,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);line-height:1.35}
+.duel-meter-wrap{padding:10px 12px 12px;background:rgba(7,10,16,.38);border:1px solid var(--line);border-top:0}
+.duel-meter-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;font:700 .76rem Rajdhani,sans-serif;text-transform:uppercase;letter-spacing:.08em}
+.dm-a{color:var(--or)}.dm-b{color:var(--cy)}
+.dbar{position:relative;display:flex;height:12px;background:rgba(255,255,255,.06);overflow:hidden;clip-path:polygon(0 0,100% 0,calc(100% - 4px) 100%,0 100%)}
+.dbar::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:rgba(255,255,255,.5);z-index:2}
+.dbar i{display:block;width:50%;background:linear-gradient(90deg,var(--or),#ffb84d);box-shadow:0 0 18px rgba(249,158,26,.4);transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.dbar u{display:block;flex:1;background:linear-gradient(90deg,#6fd8ff,var(--cy));box-shadow:0 0 18px rgba(0,195,255,.35)}
+.duel-meter-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px;font-size:.62rem;color:var(--mut);letter-spacing:.08em;text-transform:uppercase}
+.verdict{display:flex;align-items:center;gap:8px;margin-top:10px;padding:8px 11px;background:rgba(255,255,255,.035);border-left:2px solid var(--or);font-size:.9rem;line-height:1.4;color:#e8eef7}
+.verdict b{color:var(--or)}
+.duel-intel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}
+.intel-card{padding:11px 12px;background:rgba(255,255,255,.035);border:1px solid var(--line);border-top:2px solid var(--cy)}
+.intel-card.o{border-top-color:var(--or)}
+.intel-head{display:flex;align-items:center;gap:7px;margin-bottom:8px}
+.intel-ic{display:inline-flex;flex:none;width:16px;height:16px;color:var(--cy)}
+.intel-card.o .intel-ic{color:var(--or)}
+.intel-head h3{flex:1;margin:0;font-size:.86rem;color:var(--cy)}
+.intel-card.o .intel-head h3{color:var(--or)}
+.intel-tag{padding:1px 5px;border:1px solid var(--line);font:700 .56rem Rajdhani,sans-serif;letter-spacing:.12em;color:var(--mut)}
+.range-rows,.cd-rows{display:flex;flex-direction:column;gap:5px}
+.range-row{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:.8rem;color:#cdd5e0}
+.range-row b{color:#fff;font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cd-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 7px;background:rgba(255,255,255,.03);font-size:.78rem;color:var(--mut)}
+.cd-row b{font:700 .84rem Rajdhani,sans-serif;letter-spacing:.03em;color:#fff}
+.cd-hero{display:flex;align-items:center;gap:6px;min-width:0}
+.dot{flex:none;width:6px;height:6px;transform:rotate(45deg);background:var(--or)}
+.dot.b{background:var(--cy)}
+.intel-note{margin-top:8px;padding-top:7px;border-top:1px solid var(--line);font-size:.77rem;line-height:1.45;color:var(--mut)}
+.intel-note b{color:#fff}
+.intel-card.strat{grid-column:1/-1;border-top-color:var(--or)}
+.strategy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.strat-col{min-width:0}
+.strat-col+.strat-col{padding-left:14px;border-left:1px solid var(--line)}
+.strat-colhead{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:6px}
+.strat-colhead b{font-size:.92rem;color:#fff}
+.strat-colhead .sub{font-size:.66rem;color:var(--mut)}
+.strat-col .tac{--c:var(--or)}
+.strat-col.b .tac{--c:var(--cy)}
+.rng{display:inline-flex;flex:none;gap:3px}
+.rng i{padding:2px 6px;background:rgba(255,255,255,.06);border:1px solid transparent;color:var(--mut);font:700 .56rem Rajdhani,sans-serif;font-style:normal;text-transform:uppercase;letter-spacing:.05em}
+.rng i.on.a{background:var(--or);border-color:var(--or);color:#06090f}
+.rng i.on.b{background:var(--cy);border-color:var(--cy);color:#06090f}
+.duel-empty{display:flex;align-items:center;gap:12px;padding:18px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-left:3px solid var(--cy)}
+.duel-empty-ic{display:grid;place-items:center;flex:none;width:38px;height:38px;background:rgba(0,195,255,.12);color:var(--cy);clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+.duel-empty-ic svg{width:20px;height:20px}
+.duel-empty b{display:block;font-size:1.05rem;color:#fff;margin-bottom:2px}
+.duel-empty p{margin:0;font-size:.82rem;line-height:1.4;color:var(--mut)}
+.duel-filters{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px 0}
+.duel-hcard small{font:700 .6rem Rajdhani,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.duel-hcard.on{background:#332815;border-color:var(--or)}
+.duel-hcard.on b{color:var(--or)}
+.duel-modal{border-top-color:var(--cy)}
+@media(max-width:760px){
+  .duel-pickers{grid-template-columns:1fr}
+  .duel-swap{flex-direction:row;min-height:40px}
+  .duel-arena{grid-template-columns:1fr}
+  .duel-core{flex-direction:row;justify-content:center;padding:2px 0}
+  .duel-fighter.b{align-items:flex-start;text-align:left}
+  .duel-fighter.b .df-main,.duel-fighter.b .df-top{flex-direction:row}
+  .duel-fighter.b .badges{justify-content:flex-start}
+  .duel-fighter.b .df-win{align-self:flex-start}
+  .duel-intel,.strategy-grid{grid-template-columns:1fr}
+  .strat-col+.strat-col{padding-top:12px;padding-left:0;border-top:1px solid var(--line);border-left:0}
+  .duel-badge{display:none}
+}
+.foot{margin:16px 0 4px;text-align:center;font-size:.74rem;color:var(--mut)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="12" r="6.5"/><path d="M12 1.5v5M12 17.5v5M1.5 12h5M17.5 12h5"/></svg></div>
+      <div><h1 class="ow"><span class="sk">Overwatch <b>Picker</b></span></h1><p id="brandSub">5v5 Role Queue · Tactical Hub</p></div>
+    </div>
+    <button id="reset" class="btn-main ow cut"><span class="sk">Resetear partida</span><small>Borra todo y empieza de cero</small></button>
+  </header>
+  <nav class="guide" id="guide" aria-label="Guía de 3 pasos"></nav>
+
+  <main class="dash">
+    <section class="left">
+      <div class="card map-banner cut" id="mapBanner">
+        <div class="map-top">
+          <div>
+            <div class="badges" id="mapArch"></div>
+            <div class="map-name ow"><span class="sk" id="mapName">Selecciona un mapa</span></div>
+            <div class="map-feat" id="mapFeat"></div>
+          </div>
+          <span class="map-type ow" id="mapType">—</span>
+        </div>
+        <span class="mini">Mapa · Elige dónde juegas: define el estilo ideal (Brawl / Dive / Poke)</span>
+      </div>
+
+      <div class="card map-picker cut" id="mapPicker">
+        <div class="mp-head">
+          <span class="mp-title"><span class="ri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></span>Selección de mapa <small>· 1 clic y el cálculo se actualiza</small></span>
+          <span class="map-current empty" id="mapCurrent"></span>
+        </div>
+        <div class="map-search">
+          <span class="ms-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg></span>
+          <input id="mapSearch" class="map-search-input" type="text" placeholder="Buscar mapa..." autocomplete="off" spellcheck="false" title="Escribe el nombre del mapa o del modo de juego. Pulsa Enter para elegir el primer resultado." aria-label="Buscar mapa por nombre o modo de juego">
+          <button id="mapSearchClear" class="ms-clear" type="button" aria-label="Limpiar búsqueda de mapas" hidden>✕</button>
+        </div>
+        <div class="mode-tabs" id="mapModes" role="group" aria-label="Filtrar mapas por modo de juego"></div>
+        <div class="map-grid" id="mapGrid" aria-label="Mapas agrupados por modo de juego"></div>
+        <p class="mini" style="margin:8px 0 0">Agrupados por modo oficial. Toca una tarjeta para fijar el mapa y recalcular el plan táctico al instante.</p>
+      </div>
+
+      <div class="idealbar">
+        <button id="idealBtn" class="btn-sec cut ow"><span class="sk">★ Ver equipo ideal para este mapa</span></button>
+        <span class="help l" id="idealHelp" tabindex="0" data-tip="Calcula la mejor alineación para el mapa según su estilo dominante (Brawl, Dive o Poke) y la sinergia entre héroes. Útil cuando aún no conoces al enemigo.">?</span>
+        <p class="sub" id="idealHint">Sugiere los 5 héroes y el estilo dominante cuando aún no hay enemigos seleccionados.</p>
+      </div>
+
+      <div class="card fmt-card" id="formatCard">
+        <div class="lbl"><span>Formato de partida</span><span class="help r" tabindex="0" data-tip="5v5 Role Queue exige 1 Tank, 2 Damage y 2 Support por equipo. 6v6 Open Queue permite cualquier combinación de roles y amplía Mi Equipo a 5 compañeros.">?</span></div>
+        <p class="sub pad">Elige el formato oficial: la estructura de los slots se ajusta automáticamente.</p>
+        <div id="formatToggle" class="fmt-toggle" role="group" aria-label="Formato de partida"></div>
+      </div>
+
+      <div class="card">
+        <div class="lbl"><span>Mi rol</span></div>
+        <p class="sub pad">¿Qué rol vas a jugar? Solo te recomendaremos héroes de ese rol.</p>
+        <div id="roles" class="roles"></div>
+      </div>
+
+      <div class="card party-card" id="partyCard">
+        <div class="lbl"><span>Modo de cola</span><span class="help r" tabindex="0" data-tip="Solo Queue mantiene las recomendaciones individuales. En Grupo (Party) indicas los roles de tus compañeros y el motor prioriza ligeramente héroes con sinergia hacia esos roles.">?</span></div>
+        <p class="sub pad">¿Juegas solo o con amigos? El modo Party ajusta la sinergia según la composición de tu grupo.</p>
+        <div id="partyToggle" class="party-toggle"></div>
+        <div id="partyPanel" class="party-panel"></div>
+      </div>
+
+      <div class="card team">
+        <div class="team-h"><h2 class="ow"><span class="sk">Mi equipo</span></h2><span class="you" id="youChip"></span></div>
+        <p class="sub pad"><span id="teamHelpTxt">Marca a tus 4 compañeros (Role Queue 1-2-2): toca un slot vacío para elegir. Si un aliado no juega, pulsa ⚠ AFK en su slot: actívalo si un aliado no juega (ajusta la estrategia a 4v5)</span><span class="help r" tabindex="0" data-tip="AFK / Throwing: el equipo pierde un jugador (4v5 en Role Queue o 5v6 en Open Queue). El motor penaliza héroes que dependen del equipo o de Peel constante (Zenyatta, Ana, Reinhardt) y premia a los autosuficientes con Self-Sustain, movilidad o Carry individual (Tracer, Soldier: 76, Roadhog, Moira...).">?</span></p>
+        <div id="team" class="slots"></div>
+      </div>
+
+      <div class="card team red">
+        <div class="team-h"><h2 class="ow"><span class="sk">Equipo enemigo</span></h2></div>
+        <p class="sub pad" id="enemyHelp">Marca a los 5 rivales (1 Tank, 2 Damage, 2 Support) para calcular los counters.</p>
+        <div id="enemy" class="slots"></div>
+      </div>
+
+      <div class="card panic">
+        <div class="team-h"><h2 class="ow"><span class="sk">¡Nos están destrozando! · Mid-Match Swap</span><span class="help r" tabindex="0" data-tip="Suma puntos a tus héroes que son Hard Counter del enemigo marcado y resta a los que él counterea. La sinergia con tu equipo no se modifica.">?</span></h2></div>
+        <p class="sub pad">Selecciona al enemigo que está dominando la partida para priorizar su Hard Counter inmediato. ¿Alguien te está carrileando? Márcalo aquí para ver su counter.</p>
+        <div id="panicList" class="panic-list"></div>
+      </div>
+    </section>
+
+    <aside class="right" id="results"></aside>
+  </main>
+
+  <section class="card duel" id="duel">
+    <div class="duel-head">
+      <h2 class="ow"><span class="sk">1V1: ¿Quién gana a quién?</span><span class="help l" tabindex="0" data-tip="Compara solo a los dos héroes, sin equipo. Usa counters directos, Self-Sustain, movilidad y rango para estimar quién gana un duelo aislado.">?</span></h2>
+      <span class="duel-badge ow">Duel Lab</span>
+    </div>
+    <p class="sub">Duelo aislado sin equipo: counters directos, Self-Sustain, movilidad y rango.</p>
+    <div class="duel-pickers">
+      <button id="duelPickA" class="duel-slot cut" aria-label="Elegir Héroe A">
+        <span class="ds-kicker ow">Héroe A</span>
+        <span class="ds-content" id="duelCardA"></span>
+      </button>
+      <button id="duelSwap" class="duel-swap cut" title="Intercambiar Héroe A y Héroe B" aria-label="Intercambiar héroes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>
+        <small>Swap</small>
+      </button>
+      <button id="duelPickB" class="duel-slot b cut" aria-label="Elegir Héroe B">
+        <span class="ds-kicker ow">Héroe B</span>
+        <span class="ds-content" id="duelCardB"></span>
+      </button>
+    </div>
+    <div style="display:none" aria-hidden="true"><select id="duelA"></select><select id="duelB"></select></div>
+    <div id="duelOut" aria-live="polite"></div>
+  </section>
+  <footer class="foot">Sin cuentas, sin guardado y sin permisos: todo ocurre en la memoria de esta pestaña y se borra al cerrarla.</footer>
+</div>
+
+<!-- Modal selector de héroes -->
+<div id="modal" class="overlay">
+  <div class="modal cut">
+    <div class="m-head">
+      <div class="m-title ow" id="modalTitle"></div>
+      <input id="search" class="search" placeholder="Buscar héroe..." autocomplete="off">
+      <div id="archFilter" class="badges"></div>
+      <button id="closeModal" class="m-close cut ow">✕ Cerrar</button>
+    </div>
+    <div id="heroGrid" class="hgrid"></div>
+  </div>
+</div>
+
+<!-- Selector de héroe para el 1v1 -->
+<div id="duelModal" class="overlay" role="dialog" aria-modal="true" aria-label="Selector de héroe para el 1v1">
+  <div class="modal duel-modal cut">
+    <div class="m-head">
+      <div class="m-title ow" id="duelModalTitle"></div>
+      <input id="duelSearch" class="search" placeholder="Buscar héroe..." autocomplete="off">
+      <button id="duelClose" class="m-close cut ow">✕ Cerrar</button>
+    </div>
+    <div id="duelRoleFilter" class="duel-filters"></div>
+    <div id="duelHeroGrid" class="hgrid"></div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   BASE DE DATOS (editable) — Roster 2026 completo: 54 héroes (15 Tank / 23 Damage / 16 Support), Sombra en Support
+   Campos de héroe:
+     n  = nombre | r = rol (Tank/Damage/Support)
+     a  = arquetipos (Brawl / Dive / Poke), el primero es el principal
+     t  = rasgos (hitscan, mobility, flight, barrier, closeRange, longRange, sustain, antiHeal, antiDive, hack, area, flank...)
+     c  = héroes a los que COUNTEREA | b = héroes que lo COUNTEREAN
+     s  = sinergias | cd = cooldown clave a trackear
+   ===================================================================== */
+const HEROES = [
+// ---- TANK ----
+{n:"D.Va",r:"Tank",a:["Dive","Brawl"],t:["mobility","antiProj"],c:["Hanzo","Junkrat","Pharah","Zenyatta"],b:["Reaper","Mauga","Sombra"],s:["Winston","Tracer","Genji","Lúcio"],cd:"Defense Matrix"},
+{n:"Doomfist",r:"Tank",a:["Dive"],t:["mobility","flank"],c:["Ana","Zenyatta","Baptiste","Lifeweaver"],b:["Cassidy","Sombra","Brigitte","Mei"],s:["Tracer","Genji","Kiriko","Lúcio"],cd:"Power Block"},
+{n:"Domina",r:"Tank",a:["Poke"],t:["barrier","longRange","antiDive"],c:["Ashe","Hanzo","Widowmaker"],b:["Sombra","Reaper","Winston"],s:["Ashe","Soldier: 76","Ana","Baptiste"],cd:"Barrier Array"},
+{n:"Hazard",r:"Tank",a:["Brawl"],t:["closeRange","sustain"],c:["Tracer","Genji","Soldier: 76"],b:["Ashe","Widowmaker","Hanzo"],s:["Reaper","Mei","Moira","Lúcio"],cd:"Spike Guard"},
+{n:"Junker Queen",r:"Tank",a:["Brawl"],t:["closeRange","antiHeal","sustain"],c:["Mercy","Zenyatta","Baptiste","Illari"],b:["Ashe","Widowmaker","Hanzo","Sojourn"],s:["Reaper","Mei","Moira","Mercy"],cd:"Commanding Shout"},
+{n:"Mauga",r:"Tank",a:["Brawl"],t:["closeRange","sustain"],c:["Tracer","Genji","Winston"],b:["Sombra","Ana","Mei"],s:["Ana","Lúcio","Kiriko"],cd:"Cardiac Overdrive"},
+{n:"Orisa",r:"Tank",a:["Poke","Brawl"],t:["antiDive","longRange"],c:["Doomfist","Winston","Wrecking Ball","Reinhardt"],b:["Sombra","Hanzo","Bastion","Widowmaker"],s:["Soldier: 76","Ashe","Mercy","Ana"],cd:"Fortify"},
+{n:"Ramattra",r:"Tank",a:["Brawl"],t:["closeRange","barrier"],c:["Reinhardt","Winston","Doomfist"],b:["Sombra","Bastion","Echo"],s:["Reaper","Mei","Moira","Lifeweaver"],cd:"Void Barrier"},
+{n:"Reinhardt",r:"Tank",a:["Brawl"],t:["barrier","closeRange"],c:["Reaper","Mei","Bastion"],b:["Pharah","Echo","Ashe","Widowmaker"],s:["Reaper","Zarya","Brigitte","Lúcio"],cd:"Fire Strike"},
+{n:"Roadhog",r:"Tank",a:["Brawl"],t:["closeRange","sustain"],c:["Winston","Wrecking Ball","Reinhardt"],b:["Sombra","Ashe","Widowmaker","Hanzo"],s:["Ana","Mei","Junkrat"],cd:"Chain Hook"},
+{n:"Sigma",r:"Tank",a:["Poke"],t:["barrier","longRange"],c:["Hanzo","Widowmaker","Ashe","Echo"],b:["Sombra","Winston","Genji"],s:["Ashe","Soldier: 76","Ana","Baptiste"],cd:"Kinetic Grasp"},
+{n:"Winston",r:"Tank",a:["Dive"],t:["mobility","flank"],c:["Widowmaker","Ashe","Sombra","Tracer"],b:["Reaper","Mei","Roadhog"],s:["Tracer","Genji","D.Va","Lúcio"],cd:"Jump Pack"},
+{n:"Wrecking Ball",r:"Tank",a:["Dive"],t:["mobility","flank"],c:["Ana","Zenyatta","Widowmaker","Hanzo"],b:["Cassidy","Brigitte","Mei","Sombra"],s:["Tracer","Sombra","Echo","Lúcio"],cd:"Grappling Claw"},
+{n:"Zarya",r:"Tank",a:["Brawl"],t:["closeRange","beam"],c:["Tracer","Genji","Winston","D.Va"],b:["Widowmaker","Hanzo","Sombra"],s:["Soldier: 76","Cassidy","Ana","Mercy"],cd:"Particle Barrier"},
+{n:"D.Mon",r:"Tank",a:["Brawl"],t:["closeRange","melee","antiDive","stalwart"],c:["Reinhardt","Winston","Doomfist","Wrecking Ball","Genji","Tracer"],b:["Pharah","Echo","Roadhog","Sombra","Ashe"],s:["Reaper","Mei","Lúcio","Moira","Mizuki","Brigitte"],cd:"Power Barrier"},
+// ---- DAMAGE ----
+{n:"Anran",r:"Damage",a:["Dive"],t:["mobility","flank"],c:["Ana","Zenyatta","Baptiste","Lifeweaver"],b:["Cassidy","Brigitte","Sombra"],s:["Winston","Kiriko","Lúcio"],cd:"Self-revive Ult"},
+{n:"Ashe",r:"Damage",a:["Poke"],t:["hitscan","longRange","highGround"],c:["Reinhardt","Pharah","Echo","Sigma"],b:["Winston","Tracer","Genji","Sombra"],s:["Ana","Orisa","Domina","Baptiste"],cd:"Dynamite"},
+{n:"Bastion",r:"Damage",a:["Poke","Brawl"],t:["hitscan","tankBuster"],c:["Reinhardt","Doomfist","D.Va","Roadhog"],b:["Sombra","Widowmaker","Hanzo","Echo","Pharah"],s:["Reinhardt","Zenyatta","Mercy"],cd:"Configuration: Tank"},
+{n:"Cassidy",r:"Damage",a:["Brawl"],t:["hitscan","antiDive"],c:["Doomfist","Winston","Wrecking Ball","Genji","Tracer"],b:["Widowmaker","Ashe","Hanzo","Pharah","Echo"],s:["Ana","Mercy","Reinhardt"],cd:"Flashbang"},
+{n:"Echo",r:"Damage",a:["Dive"],t:["flight","burst"],c:["Reinhardt","Zenyatta","Ana","Mercy"],b:["Cassidy","Widowmaker","Ashe","Soldier: 76"],s:["Mercy","Winston","Kiriko"],cd:"Flight"},
+{n:"Emre",r:"Damage",a:["Poke","Brawl"],t:["hitscan","sustain"],c:["Genji","Tracer","Pharah"],b:["Widowmaker","Ashe","Sombra"],s:["Ana","Kiriko","Reinhardt"],cd:"Altered Vitals"},
+{n:"Freja",r:"Damage",a:["Poke"],t:["mobility","longRange"],c:["Mercy","Zenyatta","Ana"],b:["Sombra","Winston","Tracer"],s:["Ana","Baptiste","Orisa"],cd:"Mobility"},
+{n:"Genji",r:"Damage",a:["Dive"],t:["mobility","flank"],c:["Ana","Zenyatta","Baptiste","Widowmaker","Ashe"],b:["Winston","Brigitte","Mei","Zarya"],s:["Winston","D.Va","Lúcio","Kiriko","Doomfist"],cd:"Deflect"},
+{n:"Hanzo",r:"Damage",a:["Poke"],t:["longRange","burst","highGround"],c:["Reinhardt","Mauga","Orisa"],b:["Winston","Genji","Tracer","Sombra","D.Va"],s:["Sigma","Ana","Zenyatta"],cd:"Storm Arrows"},
+{n:"Junkrat",r:"Damage",a:["Poke","Brawl"],t:["area"],c:["Reinhardt","Mauga","Roadhog"],b:["Widowmaker","Hanzo","Pharah","Echo","D.Va"],s:["Reinhardt","Zenyatta","Mercy"],cd:"Concussion Mine"},
+{n:"Mei",r:"Damage",a:["Brawl"],t:["closeRange","wall"],c:["Winston","Doomfist","Wrecking Ball","Genji","Tracer"],b:["Pharah","Echo","Ashe","Widowmaker","Hanzo"],s:["Reinhardt","Zarya","Mercy","Ana"],cd:"Ice Wall"},
+{n:"Pharah",r:"Damage",a:["Poke"],t:["flight","area"],c:["Reinhardt","Mauga","Roadhog","Mei"],b:["Widowmaker","Ashe","Cassidy","Soldier: 76","Echo"],s:["Mercy","Ana","Zarya"],cd:"Jump Jet"},
+{n:"Reaper",r:"Damage",a:["Brawl"],t:["closeRange","tankBuster","sustain"],c:["Reinhardt","Mauga","Roadhog","Zarya","Hazard"],b:["Ashe","Widowmaker","Hanzo","Pharah","Echo","Sigma"],s:["Reinhardt","Zarya","Lúcio","Mercy"],cd:"Shadow Step"},
+{n:"Sojourn",r:"Damage",a:["Poke","Dive"],t:["hitscan","mobility"],c:["Winston","Reinhardt","Roadhog"],b:["Sombra","Tracer","Genji","Winston"],s:["Ana","Kiriko","Lúcio","Winston"],cd:"Power Slide"},
+{n:"Soldier: 76",r:"Damage",a:["Poke","Brawl"],t:["hitscan","sustain"],c:["Doomfist","Winston","Tracer","Genji","Wrecking Ball"],b:["Widowmaker","Ashe","Sombra","Hanzo"],s:["Ana","Mercy","Reinhardt","Sigma"],cd:"Helix Rockets"},
+{n:"Symmetra",r:"Damage",a:["Brawl"],t:["closeRange","tankBuster"],c:["Winston","Wrecking Ball","Doomfist","Genji","Tracer"],b:["Widowmaker","Ashe","Hanzo","Pharah"],s:["Reinhardt","Zarya","Lúcio"],cd:"Teleporter"},
+{n:"Torbjörn",r:"Damage",a:["Brawl","Poke"],t:["turret","tankBuster"],c:["Winston","Doomfist","Tracer","Genji","Wrecking Ball"],b:["Widowmaker","Hanzo","Pharah","Ashe","Echo"],s:["Reinhardt","Orisa","Mercy"],cd:"Deploy Turret"},
+{n:"Tracer",r:"Damage",a:["Dive"],t:["mobility","flank"],c:["Ana","Zenyatta","Baptiste","Mercy","Widowmaker"],b:["Cassidy","Brigitte","Soldier: 76","Winston","Mei"],s:["Winston","D.Va","Lúcio","Kiriko"],cd:"Recall"},
+{n:"Vendetta",r:"Damage",a:["Dive","Brawl"],t:["mobility","closeRange"],c:["Ana","Mercy","Zenyatta"],b:["Ashe","Widowmaker","Hanzo","Cassidy","Sombra"],s:["Kiriko","Lúcio","Mercy","Winston"],cd:"Dash"},
+{n:"Venture",r:"Damage",a:["Dive"],t:["mobility","burrow"],c:["Ana","Zenyatta","Baptiste","Mercy","Lifeweaver"],b:["Cassidy","Brigitte","Sombra","Reinhardt"],s:["Winston","Lúcio","Kiriko"],cd:"Burrow"},
+{n:"Widowmaker",r:"Damage",a:["Poke"],t:["hitscan","longRange","highGround"],c:["Ana","Zenyatta","Kiriko","Mercy"],b:["Winston","Genji","Tracer","Sombra","Wrecking Ball","D.Va"],s:["Orisa","Sigma","Mercy","Baptiste"],cd:"Grappling Hook"},
+{n:"Shion",r:"Damage",a:["Dive","Brawl"],t:["mobility","flank","sustain","closeRange"],c:["Ana","Zenyatta","Baptiste","Lifeweaver","Illari"],b:["Cassidy","Brigitte","Reinhardt","Sombra","Mei"],s:["Kiriko","Lúcio","Winston","Mizuki"],cd:"Dash"},
+{n:"Sierra",r:"Damage",a:["Poke","Dive"],t:["mobility","hitscan","longRange","highGround"],c:["Ana","Zenyatta","Mercy","Illari","Lifeweaver"],b:["Winston","Tracer","Genji","Sombra","Wrecking Ball"],s:["Ana","Kiriko","Orisa","Domina","Lúcio"],cd:"Mobility"},
+// ---- SUPPORT ----
+{n:"Ana",r:"Support",a:["Poke"],t:["hitscan","antiHeal","longRange"],c:["Reinhardt","Mauga","Hazard","Doomfist","Orisa"],b:["Sombra","Tracer","Genji","Winston","Wrecking Ball"],s:["Ashe","Soldier: 76","Orisa","Sigma","Cassidy"],cd:"Sleep Dart"},
+{n:"Baptiste",r:"Support",a:["Poke","Brawl"],t:["sustain","antiDive"],c:["Reaper","Hazard","Reinhardt"],b:["Sombra","Widowmaker","Tracer"],s:["Reinhardt","Soldier: 76","Ashe","Orisa"],cd:"Immortality Field"},
+{n:"Brigitte",r:"Support",a:["Brawl"],t:["closeRange","antiDive","peel"],c:["Winston","Doomfist","Wrecking Ball","Genji","Tracer","Venture","Anran","Vendetta"],b:["Ashe","Widowmaker","Hanzo","Pharah","Echo","Sigma"],s:["Reinhardt","Reaper","Zarya","Mei","Hazard","Mauga"],cd:"Shield Bash"},
+{n:"Illari",r:"Support",a:["Poke"],t:["sustain","longRange"],c:["Doomfist","Genji","Pharah"],b:["Widowmaker","Sombra","Echo"],s:["Ashe","Cassidy","Domina","Sigma","Orisa"],cd:"Healing Pylon"},
+{n:"Jetpack Cat",r:"Support",a:["Dive"],t:["flight","mobility"],c:["Reinhardt","Mauga"],b:["Widowmaker","Ashe","Cassidy","Sombra","Echo"],s:["Winston","Tracer","Genji","D.Va"],cd:"Flight"},
+{n:"Juno",r:"Support",a:["Dive","Poke"],t:["mobility","sustain","flight"],c:["Reaper","Hazard","Reinhardt"],b:["Widowmaker","Sombra","Ashe"],s:["Winston","D.Va","Tracer","Genji","Doomfist"],cd:"Glide Boost"},
+{n:"Kiriko",r:"Support",a:["Dive"],t:["mobility","antiCC"],c:["Sombra","Ana","Roadhog","Junkrat"],b:["Widowmaker","Ashe","Cassidy","Sombra"],s:["Genji","Tracer","Winston","Doomfist","Sojourn"],cd:"Protection Suzu"},
+{n:"Lifeweaver",r:"Support",a:["Poke"],t:["sustain","peel","mobility"],c:["Winston","Doomfist","Wrecking Ball"],b:["Widowmaker","Ashe","Echo","Sombra"],s:["Ashe","Soldier: 76","Orisa","Sigma","Reinhardt"],cd:"Life Grip"},
+{n:"Lúcio",r:"Support",a:["Dive","Brawl"],t:["mobility","speed"],c:["Roadhog","Junkrat"],b:["Widowmaker","Hanzo","Sombra","Cassidy","Echo"],s:["Winston","Tracer","Genji","Reaper","Reinhardt"],cd:"Amp It Up"},
+{n:"Mercy",r:"Support",a:["Dive","Poke"],t:["flight","rez"],c:[],b:["Widowmaker","Ashe","Sombra","Echo","Tracer","Cassidy","Genji","Sojourn"],s:["Pharah","Reinhardt","Reaper","Soldier: 76","Mei","Bastion","Orisa"],cd:"Guardian Angel"},
+{n:"Mizuki",r:"Support",a:["Brawl"],t:["sustain","closeRange"],c:["Winston","Wrecking Ball","Doomfist"],b:["Widowmaker","Ashe","Hanzo","Pharah"],s:["Reinhardt","Reaper","Mauga","Hazard","Mei","Junker Queen","Zarya"],cd:"Kasa"},
+{n:"Moira",r:"Support",a:["Brawl"],t:["sustain","closeRange","flank"],c:["Tracer","Genji","Venture"],b:["Widowmaker","Ashe","Hanzo","Sombra"],s:["Reinhardt","Reaper","Zarya","Mei","Sigma","Winston"],cd:"Fade"},
+{n:"Wuyang",r:"Support",a:["Poke"],t:["sustain","mobility"],c:["Winston","Wrecking Ball"],b:["Widowmaker","Sombra","Echo"],s:["Ashe","Sigma","Orisa"],cd:"Cooldown principal"},
+{n:"Zenyatta",r:"Support",a:["Poke"],t:["longRange","burst","discord"],c:["Reinhardt","Mauga","Roadhog","Junker Queen","Domina"],b:["Winston","Tracer","Genji","Sombra","Wrecking Ball","Doomfist"],s:["Widowmaker","Hanzo","Ashe","Cassidy"],cd:"Orb of Discord"},
+{n:"Doctrine",r:"Support",a:["Poke","Brawl"],t:["sustain","longRange","antiHeal"],c:["Reinhardt","Mauga","Hazard","Roadhog"],b:["Widowmaker","Ashe","Sombra","Echo","Tracer"],s:["Reinhardt","Orisa","Sigma","Soldier: 76","Ashe","Cassidy"],cd:"Infuse"},
+{n:"Sombra",r:"Support",a:["Dive"],t:["hack","flank","mobility"],c:["Ashe","Widowmaker","Hanzo","Doomfist","Orisa","Sigma","Ana","Kiriko"],b:["Tracer","Winston","Brigitte","Mei","Cassidy"],s:["Winston","Doomfist","Tracer","Genji","Wrecking Ball"],cd:"Hack"}
+];
+
+/* Mapas: a = arquetipos favorecidos (por prioridad) | t = rasgos favorecidos | f = características clave */
+const MAPS = [
+// Control
+{n:"Antarctic Peninsula",m:"Control",a:["Brawl","Dive"],t:["closeRange","sustain"],f:"puntos cerrados y spawn largo, pelea corta"},
+{n:"Busan",m:"Control",a:["Dive","Brawl"],t:["mobility","closeRange"],f:"verticalidad y puntos compactos"},
+{n:"Ilios",m:"Control",a:["Brawl","Poke"],t:["antiProj","closeRange"],f:"pozos (Well) y ruinas, riesgo de caídas"},
+{n:"Lijiang Tower",m:"Control",a:["Brawl","Dive"],t:["closeRange","mobility"],f:"puntos cerrados con off-angle"},
+{n:"Nepal",m:"Control",a:["Brawl","Dive"],t:["closeRange","mobility"],f:"pozos con caídas y espacios cortos"},
+{n:"Oasis",m:"Control",a:["Brawl","Dive"],t:["closeRange","antiProj"],f:"puntos cerrados con paredes y cover"},
+{n:"Samoa",m:"Control",a:["Brawl","Dive"],t:["mobility","closeRange"],f:"high ground central y rutas laterales"},
+// Escort
+{n:"Circuit Royal",m:"Escort",a:["Poke","Dive"],t:["longRange","hitscan"],f:"largas líneas de visión en tramos abiertos"},
+{n:"Dorado",m:"Escort",a:["Brawl","Dive"],t:["closeRange","mobility"],f:"calles cerradas y flancos"},
+{n:"Havana",m:"Escort",a:["Dive","Brawl"],t:["mobility","flank"],f:"verticalidad y rutas laterales"},
+{n:"Junkertown",m:"Escort",a:["Poke","Dive"],t:["highGround","longRange"],f:"high ground fuerte en defensa"},
+{n:"Rialto",m:"Escort",a:["Poke","Dive"],t:["highGround","hitscan"],f:"canales con high ground largo"},
+{n:"Route 66",m:"Escort",a:["Poke","Brawl"],t:["longRange","highGround"],f:"líneas largas con high ground"},
+{n:"Shambali Monastery",m:"Escort",a:["Dive","Brawl"],t:["mobility","flank"],f:"vertical, techos y flancos"},
+{n:"Watchpoint: Gibraltar",m:"Escort",a:["Poke","Dive"],t:["longRange","highGround"],f:"largas líneas de visión y high ground"},
+// Hybrid
+{n:"Blizzard World",m:"Hybrid",a:["Brawl","Dive"],t:["closeRange","sustain"],f:"puntos cerrados con spawn largo"},
+{n:"Eichenwalde",m:"Hybrid",a:["Brawl","Dive"],t:["closeRange","antiDive"],f:"castillo cerrado y chokes"},
+{n:"Hollywood",m:"Hybrid",a:["Poke","Dive"],t:["longRange","highGround"],f:"high ground y calles abiertas"},
+{n:"King's Row",m:"Hybrid",a:["Brawl","Dive"],t:["closeRange","mobility"],f:"chokes de ciudad y flancos"},
+{n:"Midtown",m:"Hybrid",a:["Dive","Brawl"],t:["mobility","highGround"],f:"calles abiertas y verticalidad"},
+{n:"Numbani",m:"Hybrid",a:["Poke","Brawl"],t:["longRange","hitscan"],f:"líneas largas con puntos abiertos"},
+{n:"Paraíso",m:"Hybrid",a:["Dive","Poke"],t:["mobility","highGround"],f:"alturas y cover variado"},
+// Push
+{n:"Colosseo",m:"Push",a:["Poke","Brawl"],t:["longRange","hitscan"],f:"líneas largas y arena abierta"},
+{n:"Esperança",m:"Push",a:["Dive","Poke"],t:["mobility","highGround"],f:"calles con verticalidad"},
+{n:"New Queen Street",m:"Push",a:["Brawl","Dive"],t:["closeRange","mobility"],f:"avenidas con flancos"},
+{n:"Runasapi",m:"Push",a:["Dive","Poke"],t:["mobility","highGround"],f:"rutas altas y flancos"},
+// Flashpoint
+{n:"Aatlis",m:"Flashpoint",a:["Dive","Poke"],t:["mobility","longRange"],f:"puntos dispersos y rotaciones largas"},
+{n:"New Junk City",m:"Flashpoint",a:["Brawl","Dive"],t:["closeRange","mobility"],f:"puntos cerrados con verticalidad"},
+{n:"Suravasa",m:"Flashpoint",a:["Brawl","Dive"],t:["closeRange","mobility"],f:"puntos cerrados y flancos"},
+// Clash
+{n:"Hanaoka",m:"Clash",a:["Brawl","Dive"],t:["closeRange","sustain"],f:"puntos cerrados y spawn largo"},
+{n:"Throne of Anubis",m:"Clash",a:["Poke","Brawl"],t:["longRange","highGround"],f:"líneas largas y high ground"}
+];
+
+/* Layout Role Queue (1-2-2) */
+const TEAM_LAYOUT = {Tank:["Damage","Damage","Support","Support"],Damage:["Tank","Damage","Support","Support"],Support:["Tank","Damage","Damage","Support"]};
+const ENEMY_LAYOUT = ["Tank","Damage","Damage","Support","Support"];
+
+/* Modo 4v5: héroe especial "AFK / Throwing" (solo en Mi Equipo) y pesos del motor (editables) */
+const AFK = "AFK / Throwing";
+const AFK_CARRY = {   // bonus por Self-Sustain / independencia / movilidad / Carry individual
+  "Soldier: 76":6,"Tracer":6,"Venture":5,"Roadhog":6,"Sigma":5,"Junker Queen":6,"Kiriko":5,"Moira":5,"Baptiste":5,"Illari":4,
+  "Mauga":4,"Reaper":3,"Cassidy":3,"Hazard":3,"Sojourn":3,"Doctrine":3,"Emre":3,"Shion":3
+};
+const AFK_DEPENDENT = {  // penalización por depender del equipo o de Peel constante
+  "Zenyatta":-5,"Ana":-4,"Reinhardt":-5,"Mercy":-4,"Lifeweaver":-3,"Bastion":-3,"Symmetra":-2,"Torbjörn":-2
+};
+const AFK_TRAITS = {sustain:1.5,mobility:1.2,flank:0.6};   // bonus por rasgo
+/* Rango de combate ideal (1v1): se deduce de los rasgos; aquí puedes forzar excepciones ("Close" | "Mid" | "Long") */
+const RANGE_OVERRIDE = {"Tracer":"Close","Winston":"Close","Doomfist":"Close","Wrecking Ball":"Close","Genji":"Mid","Sombra":"Mid","Cassidy":"Mid","Zenyatta":"Mid","Ana":"Long","Pharah":"Mid","Junkrat":"Mid","Hanzo":"Long","Widowmaker":"Long","Ashe":"Long","Sojourn":"Mid"};
+const rangeOf = h => RANGE_OVERRIDE[h.n] || ((h.t.includes("longRange")||h.t.includes("highGround")) ? "Long" : (h.t.includes("closeRange")||h.t.includes("melee")) ? "Close" : "Mid");
+/* Independencia / Self-Sustain / Carry individual (usada en modo 4v5 y en el 1v1) */
+function indep(h){
+  let v = (AFK_CARRY[h.n]||0) + (AFK_DEPENDENT[h.n]||0);
+  h.t.forEach(t=>{v += (AFK_TRAITS[t]||0);});
+  return v;
+}
+
+/* Textos de estilo (editable) */
+const STYLE_TXT = {
+  Brawl:"Fuerza Space cerca del frente, pelea junto a tu Tank y no te separes del grupo.",
+  Dive:"Coordina el Dive con tu equipo: entra tras ver el cooldown de escape enemigo y sal con tu movilidad.",
+  Poke:"Gana Space con Poke desde High Ground / Off-angle antes del engage; no te expongas sin cover."
+};
+const MITIG = {
+  hitscan:"juega con cover y evita líneas largas abiertas; rompe la línea de visión",
+  flight:"guarda cooldowns anti-aire y coordina Hitscan con tu equipo",
+  hack:"no dependas de un único cooldown; mantén al equipo junto y haz Peel",
+  mobility:"pide Peel a tu Support y guarda tu escape para el primer contacto",
+  flank:"cuida tu backline y guarda tu cooldown de escape",
+  barrier:"usa Off-angle y flanqueo para rodear su barrera",
+  closeRange:"mantén Space y no aceptes pelear a corta distancia",
+  longRange:"acorta distancia usando cover y fuerza fights cerca",
+  area:"evita agruparte y no te quedes en zonas sin escape",
+  _:"haz Cooldown tracking de su cooldown clave y juega junto a tu equipo"
+};
+
+/* ========================== LÓGICA ========================== */
+const $ = id => document.getElementById(id);
+const byName = n => HEROES.find(h => h.n === n);
+const state = {map:"", role:"Damage", team:[], enemy:Array(5).fill(null), pick:0, party:false, partyMates:["Damage"], format:"5v5"};
+state.team = Array(4).fill(null);
+const isOpen = () => state.format === "6v6";   // 6v6 Open Queue: roles libres y 5 compañeros
+
+/* Ajusta la estructura de slots al formato sin tocar el motor */
+function applyFormat(){
+  if(isOpen()){
+    while(state.team.length < 5) state.team.push(null);
+    if(state.team.length > 5) state.team.length = 5;
+    while(state.enemy.length < 6) state.enemy.push(null);
+    if(state.enemy.length > 6) state.enemy.length = 6;
+    return;
+  }
+  // 5v5: conserva los héroes que encajan en el layout estricto 1-2-2
+  const need = [...TEAM_LAYOUT[state.role]];
+  const pool = state.team.filter(n => n && n !== AFK && byName(n));
+  const afkCount = state.team.filter(n => n === AFK).length;
+  const out = need.map(r=>{
+    const k = pool.findIndex(n=>byName(n).r === r);
+    return k >= 0 ? pool.splice(k,1)[0] : null;
+  });
+  let afkLeft = afkCount;
+  for(let i=0; i<out.length && afkLeft>0; i++){ if(!out[i]){ out[i] = AFK; afkLeft--; } }
+  state.team = out;
+  state.enemy = state.enemy.slice(0,5);
+  while(state.enemy.length < 5) state.enemy.push(null);
+}
+let modalCtx = null, archSel = "";
+let duelPickSide = null, duelRoleFilter = "";
+let mapFilter = "";   // filtro visual del selector de mapas (no afecta al motor)
+let mapQuery = "";    // búsqueda rápida de mapas en tiempo real (no afecta al motor)
+
+/* ---- Motor de puntuación ---- */
+/* Sinergia de rol en Party: bonus pequeño por encajar con los roles del grupo (no altera el resto del motor) */
+function partyBonus(h, partyRoles){
+  if(!partyRoles || !partyRoles.length) return 0;
+  let v = 0;
+  partyRoles.forEach(r=>{
+    if(h.s.some(n=>{const m = byName(n); return m && m.r===r;})) v += 0.6;
+  });
+  if(partyRoles.includes("Tank") && partyRoles.includes("Support")) v += 0.4;
+  else if(partyRoles.some(r=>r!==h.r)) v += 0.2;
+  return Math.min(2.2, v);
+}
+function score(h, team, enemies, map, afk=0, panic=null, partyRoles=[]){
+  let syn=0, ctr=0, mp=0, af=0, pn=0, pt=0;
+  // Sinergia: estilo dominante del equipo + sinergias explícitas
+  const styles={Brawl:0,Dive:0,Poke:0};
+  team.forEach(t=>{ t.a.forEach(a=>styles[a]++); if(h.s.includes(t.n)||t.s.includes(h.n)) syn+=2.5; });
+  h.a.forEach((a,idx)=>syn += styles[a]*(idx?0.8:1.4));
+  // Counters
+  enemies.forEach(e=>{
+    const w = e.r==="Tank"?1.3:1;
+    if(h.c.includes(e.n)||e.b.includes(h.n)) ctr+=3*w;
+    if(h.b.includes(e.n)||e.c.includes(h.n)) ctr-=3*w;
+  });
+  // Mapa
+  if(map){
+    h.a.forEach(a=>{const k=map.a.indexOf(a); if(k===0)mp+=2.5; else if(k===1)mp+=1.2;});
+    mp += Math.min(3, h.t.filter(t=>map.t.includes(t)).length*1.2);
+  }
+  // Modo 4v5 (AFK / Throwing): prioriza independencia, Self-Sustain y Carry individual
+  if(afk>0){ af = indep(h) * (afk>1 ? 1.3 : 1); }
+  // Mid-Match Swap: prioriza el Hard Counter del enemigo que domina (la sinergia no se toca)
+  if(panic){
+    if(h.c.includes(panic.n)||panic.b.includes(h.n)) pn += 7;
+    if(h.b.includes(panic.n)||panic.c.includes(h.n)) pn -= 7;
+  }
+  // Modo Grupo (Party): prioriza ligeramente la sinergia con los roles de tus compañeros
+  if(partyRoles.length) pt = partyBonus(h, partyRoles);
+  return {syn,ctr,mp,af,pn,pt,total:syn+ctr+mp+af+pn+pt};
+}
+const pct = r => Math.max(5, Math.min(99, Math.round(45 + r*2.6)));
+
+function threatOf(h, enemies){
+  let best=null, bs=0;
+  enemies.forEach(e=>{
+    let s=(h.b.includes(e.n)||e.c.includes(h.n)?3:0)+(e.r==="Tank"?0.5:0)+(e.t.includes("hitscan")||e.t.includes("flank")?0.3:0);
+    if(s>bs){bs=s;best=e;}
+  });
+  return best;
+}
+
+function plan(h, team, enemies, map, afk=0, panic=null){
+  const out=[], style=h.a[0], afkMode = isOpen() ? "5v6" : "4v5";
+  const cnt={Brawl:0,Dive:0,Poke:0}; enemies.forEach(e=>cnt[e.a[0]]++);
+  const eStyle=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0];
+  const th=threatOf(h,enemies);
+  out.push(`<b>Game Style (${h.a.join("/")}):</b> ${STYLE_TXT[style]}`);
+  if(afk>0){
+    out.push(`<b>Modo ${afkMode} — Picks:</b> juega por <i>picks</i> rápidos antes de que inicie la teamfight; no aceptes peleas en desventaja.`);
+    out.push(`<b>Modo ${afkMode} — Stagger:</b> evita el <i>stagger</i>: no te adelantes solo y reagrúpate con tu equipo tras cada pick.`);
+    out.push(`<b>Modo ${afkMode} — Off-angles:</b> usa <i>Off-angles</i> seguros con ruta de escape y no gastes <i>${h.cd}</i> sin kill confirmada.`);
+  }
+  if(panic){
+    const hard = h.c.includes(panic.n)||panic.b.includes(h.n), bad = h.b.includes(panic.n)||panic.c.includes(h.n);
+    out.push(`<b>Mid-Match Swap:</b> ${hard?`eres Hard Counter de <b>${panic.n}</b>: fuerza el duelo con <i>${h.cd}</i> y no le des Space.`:bad?`<b>${panic.n}</b> te counterea: juega Off-angle, rompe su línea de visión y pide Peel.`:`neutraliza a <b>${panic.n}</b> con Cooldown tracking de <i>${panic.cd}</i>.`}`);
+  }
+  if(map) out.push(`<b>${map.n} (${map.m}):</b> ${map.f}. ${map.a[0]==="Poke"?"Busca High Ground y líneas largas.":map.a[0]==="Dive"?"Usa flancos y verticalidad para el Dive.":"Pelea en puntos cerrados y controla Space."}`);
+  if(enemies.length>=2 && cnt[eStyle]>=2){
+    out.push(`<b>Enemigo ${eStyle}:</b> ${eStyle==="Dive"?"haz Peel a tu Support y trackea sus escapes.":eStyle==="Brawl"?"evita pelear cerca; usa Space y Poke para desgastar.":"acorta distancia con cover y fuerza fights cercanos."}`);
+  }
+  out.push(`<b>Cooldown tracking:</b> guarda <i>${h.cd}</i> para ${th?`el engage de ${th.n}`:"el engage enemigo"} y evita gastarlo sin Win condition clara.`);
+  const targets=enemies.filter(e=>h.c.includes(e.n)||e.b.includes(h.n)).map(e=>e.n);
+  if(targets.length) out.push(`<b>Prioriza:</b> ${targets.join(", ")} (counters directos).`);
+  const wc = afk>0?`sobrevive al ${afkMode}, gana duelos 1v1/1v2 con picks aislados y no fuerces peleas largas`:style==="Poke"?"gana Space con Poke y fuerza el engage en tus términos":style==="Dive"?"elimina el Support clave y cierra con Ult economy sincronizada":"gana el choke con Space y aprovecha Ult economy en el primer fight";
+  out.push(`<b>Win condition:</b> ${wc}.`);
+  return {bullets:out,threat:th};
+}
+
+/* =====================================================================
+   UI / DISEÑO (avatares, slots, modal, panel de resultados)
+   — No modifica datos ni el algoritmo —
+   ===================================================================== */
+const ICONS = {
+  Tank:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5v6c0 5 3.4 8.6 8 11 4.6-2.4 8-6 8-11V5l-8-3z"/></svg>',
+  Damage:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="6.5"/><path d="M12 2v5M12 17v5M2 12h5M17 12h5"/></svg>',
+  Support:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z"/></svg>',
+  Open:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/></svg>',
+  Warn:'<svg viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd"><path d="M12 2 1 21h22L12 2zm-1 7h2v6h-2V9zm0 8h2v2h-2v-2z"/></svg>'
+};
+const DUEL_ICONS = {
+  range:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg>',
+  cd:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>',
+  strat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 17.5 3 6V3h3l11.5 11.5"/><path d="M13 19l6-6M16 16l4 4M19 21l2-2M3 21l3-3"/></svg>'
+};
+const ROLE_HUE = {Tank:212, Damage:355, Support:150};            // tono base del avatar por rol
+const ROLE_CLR = {Tank:"#3d8bff", Damage:"#ff4655", Support:"#2ee6a6"};
+const MAP_GRAD = {                                               // gradiente del banner por tipo de mapa
+  Control:["#0b3a66","#00c3ff"], Escort:["#6b3a05","#f99e1a"], Hybrid:["#3b1a63","#a66bff"],
+  Push:["#0b4d3a","#2ee6a6"], Flashpoint:["#6b1420","#ff4655"], Clash:["#0b4a52","#f9d71a"]
+};
+const hashStr = s => {let h = 7; for(const c of s) h = (h*31 + c.charCodeAt(0)) >>> 0; return h;};
+const initials = n => {
+  const clean = n.replace(/[.:]/g,""), w = clean.split(/\s+/);
+  return (w.length>1 ? w[0][0]+w[1][0] : clean.slice(0,2)).toUpperCase();
+};
+
+/* Avatar estilizado sin imágenes externas: gradiente único + monograma + icono de rol + etiqueta de arquetipo */
+function heroAvatar(h, size="sm"){
+  const hu = (ROLE_HUE[h.r] + (hashStr(h.n) % 70) - 35 + 360) % 360, h2 = (hu + 40) % 360;
+  return `<div class="avatar ${size}" style="background:linear-gradient(145deg,hsl(${hu} 72% 42%),hsl(${h2} 70% 16%))">
+    <span class="mono">${initials(h.n)}</span>
+    <span class="rico" style="color:${ROLE_CLR[h.r]}">${ICONS[h.r]}</span>
+    <span class="atag">${h.a.map(a=>`<i class="a-${a}">${a}</i>`).join("")}</span></div>`;
+}
+const badges = h => h.a.map(a=>`<span class="arch a-${a}">${a}</span>`).join("");
+
+state.panic = ""; state.ideal = false; state.duelA = ""; state.duelB = "";   // todo en memoria volátil
+
+function init(){
+  $("mapPicker").onclick = e => {
+    const tab = e.target.closest("[data-mode-tab]");
+    if(tab){ mapFilter = tab.dataset.modeTab || ""; $("mapGrid").scrollTop = 0; renderMapPicker(); return; }
+    if(e.target.closest("[data-search-reset]")){ $("mapSearch").value = ""; mapQuery = ""; $("mapSearchClear").hidden = true; renderMapPicker(); $("mapSearch").focus(); return; }
+    if(e.target.closest("[data-map-clear]")){ state.map = ""; state.pick = 0; render(); return; }
+    const card = e.target.closest("[data-map]");
+    if(card){ state.map = card.dataset.map; state.pick = 0; render(); }
+  };
+  const mapSearch = $("mapSearch"), mapSearchClear = $("mapSearchClear");
+  const syncMapSearch = () => {
+    mapQuery = mapSearch.value;
+    mapSearchClear.hidden = !mapQuery;
+    $("mapGrid").scrollTop = 0;
+    renderMapPicker();
+  };
+  mapSearch.oninput = syncMapSearch;
+  mapSearch.onkeydown = e => {
+    if(e.key === "Escape" && mapQuery){ mapSearch.value = ""; syncMapSearch(); return; }
+    if(e.key === "Enter"){
+      const first = $("mapGrid").querySelector("[data-map]");
+      if(first){ e.preventDefault(); first.click(); }
+    }
+  };
+  mapSearchClear.onclick = () => { mapSearch.value = ""; syncMapSearch(); mapSearch.focus(); };
+  $("idealBtn").onclick = () => {state.ideal = true; render(); if(window.innerWidth<960) $("results").scrollIntoView({behavior:"smooth",block:"start"});};
+  $("panicList").onclick = e => {
+    const b = e.target.closest("[data-panic]"); if(!b) return;
+    state.panic = (state.panic===b.dataset.panic) ? "" : b.dataset.panic; state.pick = 0; render();
+  };
+  $("archFilter").innerHTML = ["Brawl","Dive","Poke"].map(a=>`<button data-a="${a}" class="chip">${a}</button>`).join("");
+  $("archFilter").onclick = e => {const a = e.target.dataset.a; if(!a) return; archSel = archSel===a ? "" : a; drawModal();};
+  $("search").oninput = drawModal;
+  $("search").onkeydown = e => {if(e.key==="Enter"){const b = $("heroGrid").querySelector("[data-h]"); if(b) b.click();}};
+  $("closeModal").onclick = closeModal;
+  $("modal").onclick = e => {if(e.target.id==="modal") closeModal();};
+  document.addEventListener("keydown", e => {
+    if(e.key !== "Escape") return;
+    if($("duelModal").classList.contains("open")) closeDuelPicker();
+    else if($("modal").classList.contains("open")) closeModal();
+  });
+  buildDuelSelects();
+  $("reset").onclick = () => {
+    state.map=""; mapFilter=""; mapQuery=""; $("mapSearch").value=""; $("mapSearchClear").hidden=true;
+    state.format="5v5";
+    state.team=Array(4).fill(null); state.enemy=Array(5).fill(null);
+    state.pick=0; state.panic=""; state.ideal=false; state.duelA=""; state.duelB="";
+    state.party=false; state.partyMates=["Damage"];
+    $("duelA").value=""; $("duelB").value=""; renderDuel(); render();
+  };
+  render(); renderDuel();
+}
+
+/* ---- Guía de 3 pasos ---- */
+function renderSteps(map, nTeam, nEnemy){
+  const cur = !map ? 1 : (nTeam + nEnemy < 2 ? 2 : 3);
+  const L = ["Elige Mapa y Tu Rol","Rellena Equipos","Sigue el Plan Táctico"];
+  $("guide").innerHTML = L.map((t,i)=>`<div class="st ${i+1<cur?'done':''} ${i+1===cur?'cur':''}"><b>${i+1}</b><span>${t}</span></div>`).join('<span class="arrow">➔</span>');
+}
+
+/* ---- Panic Button (Mid-Match Swap) ---- */
+function renderPanic(enemies){
+  $("panicList").innerHTML = !enemies.length
+    ? '<p class="sub">Primero añade rivales en "Equipo enemigo"; luego márcalo aquí.</p>'
+    : enemies.map(e=>`<button data-panic="${e.n}" class="pchip cut ${state.panic===e.n?'on':''}">${heroAvatar(e,"sm")}<b class="ow">${e.n}</b></button>`).join("")
+      + (state.panic ? '<button data-panic="" class="pchip clear cut ow">Quitar marca</button>' : "");
+}
+
+/* ---- Composición ideal por mapa ---- */
+function idealComp(map, open = isOpen()){
+  const dom = map.a[0], picks = [];
+  (open ? ["Tank","Tank","Damage","Damage","Support","Support"] : ["Tank","Damage","Damage","Support","Support"]).forEach(r=>{
+    const best = HEROES.filter(h=>h.r===r && !picks.includes(h))
+      .map(h=>({h, v:score(h,picks,[],map).total + (h.a[0]===dom ? 3 : 0)})).sort((x,y)=>y.v-x.v)[0];
+    picks.push(best.h);
+  });
+  return {dom, picks};
+}
+function loadIdeal(){
+  const m = MAPS.find(x=>x.n===state.map); if(!m) return;
+  const open = isOpen();
+  const rest = [...idealComp(m).picks], i = rest.findIndex(h=>h.r===state.role);
+  if(i>=0) rest.splice(i,1);
+  if(open){
+    state.team = rest.slice(0,5).map(h=>h.n);
+    while(state.team.length < 5) state.team.push(null);
+  } else {
+    state.team = TEAM_LAYOUT[state.role].map(r=>{const k = rest.findIndex(h=>h.r===r); return rest.splice(k,1)[0].n;});
+  }
+  state.pick = 0;
+}
+function idealCard(map){
+  if(!map) return `<div class="card ideal cut"><div class="ideal-h"><h2 class="ow"><span class="sk">Equipo ideal por mapa</span></h2><button class="x" data-ideal-close aria-label="Cerrar">✕</button></div><p class="sub" style="margin-top:6px">Primero elige un mapa en el paso 1 y vuelve a pulsar el botón.</p></div>`;
+  const {dom,picks} = idealComp(map), open = isOpen();
+  return `<div class="card ideal cut">
+    <div class="ideal-h"><h2 class="ow"><span class="sk">Equipo ideal · ${map.n}</span></h2><button class="x" data-ideal-close aria-label="Cerrar">✕</button></div>
+    <p class="sub">${open ? `Composición 6v6 Open Queue sugerida para ${map.n} (${map.m}) cuando aún no conoces al enemigo.` : `Alineación 1-2-2 sugerida para ${map.n} (${map.m}) cuando aún no conoces al enemigo.`}</p>
+    <div class="badges" style="margin-top:8px;align-items:center"><span class="sub">Estilo dominante:</span><span class="arch a-${dom}">${dom}</span></div>
+    <div class="ideal-row ${open?'open':''}">${picks.map(h=>`<div class="col">${heroAvatar(h,"md")}<b class="ow">${h.n}</b><small>${h.r}</small></div>`).join("")}</div>
+    <p class="note">${STYLE_TXT[dom]} ${map.f.charAt(0).toUpperCase()+map.f.slice(1)}.</p>
+    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;align-items:center"><button class="btn-sec cut ow" data-ideal-load>Cargar como mi equipo</button><span class="sub">Rellena tus ${open?5:4} compañeros${open?' (cualquier rol)':` según tu rol (${state.role})`}.</span></div></div>`;
+}
+
+/* ---- 1V1 ---- */
+function renderDuelPickers(){
+  [["A",state.duelA,"duelPickA","duelCardA"],["B",state.duelB,"duelPickB","duelCardB"]].forEach(([side,name,btnId,cardId])=>{
+    const h = byName(name), btn = $(btnId);
+    btn.classList.toggle("filled", !!h);
+    $(cardId).innerHTML = h
+      ? `<span class="ds-avatar">${heroAvatar(h,"md")}</span>
+         <span class="ds-txt"><b class="ow">${h.n}</b><small><span style="color:${ROLE_CLR[h.r]}">${h.r}</span> · ${h.a.join(" / ")}</small></span>
+         <span class="ds-change ow">Cambiar</span>`
+      : `<span class="ds-avatar"><span class="avatar md empty"><span class="plus">+</span></span></span>
+         <span class="ds-txt"><b class="ow">Elegir héroe</b><small>Héroe ${side} · 1v1</small></span>
+         <span class="ds-change ow">Abrir</span>`;
+  });
+}
+function openDuelPicker(side){
+  duelPickSide = side; duelRoleFilter = ""; $("duelSearch").value = "";
+  $("duelModalTitle").innerHTML = `<span class="sk">Elegir Héroe ${side}</span><span style="font-size:.78rem;color:var(--mut);font-family:Inter;text-transform:none;letter-spacing:0">· Lado ${side} · 1v1</span>`;
+  $("duelModal").classList.add("open"); drawDuelPicker(); $("duelSearch").focus();
+}
+function closeDuelPicker(){$("duelModal").classList.remove("open");}
+function drawDuelPicker(){
+  const q = $("duelSearch").value.toLowerCase(), cur = duelPickSide==="A" ? state.duelA : state.duelB;
+  $("duelRoleFilter").innerHTML = [["","Todos"],["Tank","Tank"],["Damage","Damage"],["Support","Support"]]
+    .map(([v,l])=>`<button data-dr="${v}" class="chip ${duelRoleFilter===v?"on":""}">${l}</button>`).join("");
+  const cards = HEROES.filter(h=>(!duelRoleFilter || h.r===duelRoleFilter) && h.n.toLowerCase().includes(q))
+    .map(h=>`<button data-duel-h="${h.n}" class="hcard duel-hcard cut ${h.n===cur?"on":""}">${heroAvatar(h,"md")}<b class="ow">${h.n}</b><small>${h.r}</small></button>`).join("");
+  $("duelHeroGrid").innerHTML = cards || '<p class="none">Sin resultados</p>';
+}
+function setDuelHero(side,name){
+  const key = side==="A" ? "duelA" : "duelB";
+  state[key] = name;
+  const sel = $(key); if(sel) sel.value = name;
+  closeDuelPicker(); renderDuel();
+}
+function buildDuelSelects(){
+  const opts = '<option value="">— Elegir héroe —</option>' + ["Tank","Damage","Support"].map(r=>`<optgroup label="${r}">${HEROES.filter(h=>h.r===r).map(h=>`<option>${h.n}</option>`).join("")}</optgroup>`).join("");
+  [["duelA","duelA"],["duelB","duelB"]].forEach(([id,key])=>{const el = $(id); el.innerHTML = opts; el.onchange = () => {state[key] = el.value; renderDuel();};});
+  $("duelSwap").onclick = () => {[state.duelA,state.duelB] = [state.duelB,state.duelA]; $("duelA").value = state.duelA; $("duelB").value = state.duelB; renderDuel();};
+  $("duelPickA").onclick = () => openDuelPicker("A");
+  $("duelPickB").onclick = () => openDuelPicker("B");
+  $("duelClose").onclick = closeDuelPicker;
+  $("duelModal").onclick = e => {if(e.target.id==="duelModal") closeDuelPicker();};
+  $("duelSearch").oninput = drawDuelPicker;
+  $("duelSearch").onkeydown = e => {if(e.key==="Enter"){const b = $("duelHeroGrid").querySelector("[data-duel-h]"); if(b) b.click();}};
+  $("duelRoleFilter").onclick = e => {const b = e.target.closest("[data-dr]"); if(!b) return; duelRoleFilter = b.dataset.dr; drawDuelPicker();};
+  $("duelHeroGrid").onclick = e => {const b = e.target.closest("[data-duel-h]"); if(!b || !duelPickSide) return; setDuelHero(duelPickSide, b.dataset.duelH);};
+  renderDuelPickers();
+}
+function duelCalc(A,B){
+  let adv = 0;
+  if(A.c.includes(B.n)||B.b.includes(A.n)) adv += 18;                  // A counterea a B
+  if(B.c.includes(A.n)||A.b.includes(B.n)) adv -= 18;                  // B counterea a A
+  adv += (indep(A) - indep(B)) * 1.4;                                  // Self-Sustain / independencia / movilidad
+  if(rangeOf(B)==="Long" && (A.t.includes("mobility")||A.t.includes("flank"))) adv += 5;   // cerrar distancia
+  if(rangeOf(A)==="Long" && (B.t.includes("mobility")||B.t.includes("flank"))) adv -= 5;
+  if(A.r==="Tank" && B.r!=="Tank") adv += 4;                           // más HP en duelo aislado
+  if(B.r==="Tank" && A.r!=="Tank") adv -= 4;
+  const pa = Math.max(8, Math.min(92, Math.round(50 + adv)));
+  return {pa, pb:100-pa};
+}
+function howTo(h,o){
+  const counter = h.c.includes(o.n)||o.b.includes(h.n), countered = o.c.includes(h.n)||h.b.includes(o.n);
+  const rh = rangeOf(h), ro = rangeOf(o);
+  return [
+    `Pelea a <b>${rh} range</b>${ro!==rh ? ` y evita el <b>${ro} range</b>, donde ${o.n} está cómodo` : ""}.`,
+    `Guarda <i>${h.cd}</i> para responder al <i>${o.cd}</i> de ${o.n}: quien gaste su Cooldown primero pierde el duelo.`,
+    counter ? `Eres counter directo: fuerza el duelo y no le des Space para reposicionarse.`
+      : countered ? `${o.n} te counterea: usa Off-angle, rompe la línea de visión y no aceptes el 1v1 abierto.`
+      : `Sin counter directo: gana quien aproveche mejor su Self-Sustain y su movilidad.`
+  ];
+}
+const rngPills = (h, side="a") => `<span class="rng">${["Close","Mid","Long"].map(r=>`<i class="${rangeOf(h)===r?`on ${side}`:''}">${r}</i>`).join("")}</span>`;
+function renderDuel(){
+  renderDuelPickers();
+  const A = byName(state.duelA), B = byName(state.duelB), out = $("duelOut");
+  if(!A || !B){
+    out.innerHTML = `<div class="duel-empty"><span class="duel-empty-ic">${DUEL_ICONS.strat}</span><div><b class="ow">Selecciona los dos combatientes</b><p>Abre las tarjetas de Héroe A y Héroe B para elegir con quién comparar el duelo.</p></div></div>`;
+    return;
+  }
+  if(A===B){
+    out.innerHTML = `<div class="duel-empty"><span class="duel-empty-ic">${DUEL_ICONS.range}</span><div><b class="ow">Elige dos héroes distintos</b><p>Necesitas dos combatientes diferentes para calcular la ventaja del 1v1.</p></div></div>`;
+    return;
+  }
+  const {pa,pb} = duelCalc(A,B), diff = Math.abs(pa-50), W = pa>=pb?A:B, L = W===A?B:A;
+  const verdict = diff<6 ? `Duelo <b>parejo</b>: gana quien juegue mejor su Cooldown.` : `<b style="color:${W===A?'var(--or)':'var(--cy)'}">${W.n}</b> tiene ventaja (${Math.max(pa,pb)}%) sobre ${L.n}.`;
+  const edge = diff<6 ? "Duelo parejo" : `${Math.max(pa,pb)-50}% de ventaja`;
+  out.innerHTML = `
+    <div class="duel-arena">
+      <div class="duel-fighter a">
+        <div class="df-top"><span class="df-tag ow">Héroe A</span><span class="df-role" style="color:${ROLE_CLR[A.r]}"><span class="ri">${ICONS[A.r]}</span>${A.r}</span></div>
+        <div class="df-main">${heroAvatar(A,"lg")}<div class="df-id"><b class="ow">${A.n}</b><div class="badges" style="margin-top:4px">${badges(A)}</div></div></div>
+        <div class="df-pct">${pa}<small>%</small></div>
+        <div class="df-win ${pa>pb?"hot":""}">${pa>pb?"Win prediction":pa===pb?"Even":"Underdog"}</div>
+      </div>
+      <div class="duel-core"><span class="duel-vs ow">VS</span><span class="duel-edge">${edge}</span></div>
+      <div class="duel-fighter b">
+        <div class="df-top"><span class="df-tag ow">Héroe B</span><span class="df-role" style="color:${ROLE_CLR[B.r]}"><span class="ri">${ICONS[B.r]}</span>${B.r}</span></div>
+        <div class="df-main">${heroAvatar(B,"lg")}<div class="df-id"><b class="ow">${B.n}</b><div class="badges" style="margin-top:4px">${badges(B)}</div></div></div>
+        <div class="df-pct">${pb}<small>%</small></div>
+        <div class="df-win ${pb>pa?"hot":""}">${pb>pa?"Win prediction":pa===pb?"Even":"Underdog"}</div>
+      </div>
+    </div>
+    <div class="duel-meter-wrap">
+      <div class="duel-meter-head"><span class="dm-a">${A.n} · ${pa}%</span><span class="dm-b">${pb}% · ${B.n}</span></div>
+      <div class="dbar"><i data-w="${pa}"></i><u></u></div>
+      <div class="duel-meter-foot"><span>Counters · Self-Sustain · Rango</span><span>Predicción 1v1</span></div>
+    </div>
+    <p class="verdict"><b>Lectura del duelo:</b> ${verdict}</p>
+    <div class="duel-intel">
+      <div class="intel-card">
+        <div class="intel-head"><span class="intel-ic">${DUEL_ICONS.range}</span><h3 class="ow">Distancia ideal</h3><span class="intel-tag ow">Range</span></div>
+        <div class="range-rows">
+          <div class="range-row"><b>${A.n}</b>${rngPills(A,"a")}</div>
+          <div class="range-row"><b>${B.n}</b>${rngPills(B,"b")}</div>
+        </div>
+        <p class="intel-note">${diff<6?"Ninguno domina la distancia: el duelo se decide por ejecución y cooldowns.":`<b>${W.n}</b> impone el ritmo si fuerza el combate a <b>${rangeOf(W)} range</b>.`}</p>
+      </div>
+      <div class="intel-card o">
+        <div class="intel-head"><span class="intel-ic">${DUEL_ICONS.cd}</span><h3 class="ow">Cooldown clave</h3><span class="intel-tag ow">CD</span></div>
+        <div class="cd-rows">
+          <div class="cd-row"><span class="cd-hero"><span class="dot"></span>${A.n}</span><b>${A.cd}</b></div>
+          <div class="cd-row"><span class="cd-hero"><span class="dot b"></span>${B.n}</span><b>${B.cd}</b></div>
+        </div>
+        <p class="intel-note">Quien gaste primero su cooldown de escape o mitigación suele perder el duelo.</p>
+      </div>
+      <div class="intel-card strat">
+        <div class="intel-head"><span class="intel-ic">${DUEL_ICONS.strat}</span><h3 class="ow">Estrategia de combate</h3><span class="intel-tag ow">Read</span></div>
+        <div class="strategy-grid">
+          <div class="strat-col"><div class="strat-colhead"><span class="dot"></span><b class="ow">${A.n}</b><span class="sub">Cómo ganarle a ${B.n}</span></div><ul class="tac">${howTo(A,B).map(t=>`<li>${t}</li>`).join("")}</ul></div>
+          <div class="strat-col b"><div class="strat-colhead"><span class="dot b"></span><b class="ow">${B.n}</b><span class="sub">Cómo ganarle a ${A.n}</span></div><ul class="tac">${howTo(B,A).map(t=>`<li>${t}</li>`).join("")}</ul></div>
+        </div>
+      </div>
+    </div>`;
+  setTimeout(()=>out.querySelectorAll(".dbar i").forEach(i=>i.style.width = i.dataset.w + "%"), 30);
+}
+
+function renderRoles(){
+  $("roles").innerHTML = ["Tank","Damage","Support"].map(r=>`<button data-r="${r}" class="rolebtn cut ${state.role===r?'on':''}" style="--rc:${ROLE_CLR[r]}"><span class="ri" style="width:18px;height:18px">${ICONS[r]}</span><span class="ow">${r}</span></button>`).join("");
+  $("roles").onclick = e => {
+    const b = e.target.closest("[data-r]"); if(!b || b.dataset.r===state.role) return;
+    state.role = b.dataset.r; state.team = Array(isOpen()?5:4).fill(null); state.pick = 0; render();
+  };
+  $("youChip").innerHTML = `<span class="ri" style="color:${ROLE_CLR[state.role]}">${ICONS[state.role]}</span>Tú · ${state.role}`;
+}
+
+/* ---- Formato de partida (5v5 Role Queue / 6v6 Open Queue) ---- */
+const FORMATS = [
+  {id:"5v5", k:"5v5 · Role Queue", d:"1 Tank · 2 Damage · 2 Support", n:"4 compañeros", mc:"var(--or)", mca:"rgba(249,158,26,.18)"},
+  {id:"6v6", k:"6v6 · Open Queue", d:"Composición libre de roles", n:"5 compañeros", mc:"var(--cy)", mca:"rgba(0,195,255,.16)"}
+];
+function renderFormat(){
+  const open = isOpen();
+  $("formatCard").classList.toggle("openq", open);
+  $("formatToggle").innerHTML = FORMATS.map(f=>`
+    <button type="button" data-format="${f.id}" class="fmtbtn cut ${state.format===f.id?'on':''}" style="--mc:${f.mc};--mca:${f.mca}" aria-pressed="${state.format===f.id}">
+      <span class="fb-check">✓</span>
+      <span class="fb-k ow"><span class="sk">${f.k}</span></span>
+      <span class="fb-d">${f.d}</span>
+      <span class="fb-n ow">${f.n}</span>
+    </button>`).join("");
+  $("formatToggle").onclick = e => {
+    const b = e.target.closest("[data-format]");
+    if(!b || b.dataset.format === state.format) return;
+    state.format = b.dataset.format;
+    applyFormat();
+    state.pick = 0;
+    render();
+  };
+  $("brandSub").textContent = open ? "6v6 Open Queue · Tactical Hub" : "5v5 Role Queue · Tactical Hub";
+  $("teamHelpTxt").textContent = open
+    ? "Marca a tus 5 compañeros (6v6 Open Queue: cualquier combinación de roles): toca un slot vacío para elegir. Si un aliado no juega, pulsa ⚠ AFK en su slot (ajusta la estrategia a 5v6)"
+    : "Marca a tus 4 compañeros (Role Queue 1-2-2): toca un slot vacío para elegir. Si un aliado no juega, pulsa ⚠ AFK en su slot: actívalo si un aliado no juega (ajusta la estrategia a 4v5)";
+  $("enemyHelp").textContent = open
+    ? "Marca a los 6 rivales (Open Queue: cualquier composición de roles) para calcular los counters."
+    : "Marca a los 5 rivales (1 Tank, 2 Damage, 2 Support) para calcular los counters.";
+  $("idealHint").textContent = open
+    ? "Sugiere los 6 héroes y el estilo dominante cuando aún no hay enemigos seleccionados."
+    : "Sugiere los 5 héroes y el estilo dominante cuando aún no hay enemigos seleccionados.";
+  $("idealHelp").dataset.tip = open
+    ? "Calcula la mejor composición 6v6 Open Queue para el mapa según su estilo dominante (Brawl, Dive o Poke) y la sinergia entre héroes. Útil cuando aún no conoces al enemigo."
+    : "Calcula la mejor alineación 1-2-2 para el mapa según su estilo dominante (Brawl, Dive o Poke) y la sinergia entre héroes. Útil cuando aún no conoces al enemigo.";
+}
+
+/* ---- Modo Solo / Grupo (Party) ---- */
+function setPartySize(n){
+  const defaults = ["Damage","Support","Tank","Damage","Support"];
+  while(state.partyMates.length < n){
+    const used = [state.role, ...state.partyMates];
+    state.partyMates.push(defaults.find(r=>used.filter(x=>x===r).length<2) || "Damage");
+  }
+  state.partyMates.length = n;
+}
+function renderParty(){
+  const card = $("partyCard");
+  card.classList.toggle("party-on", state.party);
+  $("partyToggle").innerHTML = `
+    <button data-mode="solo" class="modebtn cut ow ${state.party?'':'on'}"><span class="ri">${ICONS.Damage}</span><span class="sk">Solo Queue</span></button>
+    <button data-mode="party" class="modebtn party cut ow ${state.party?'on':''}"><span class="ri">${ICONS.Support}</span><span class="sk">En Grupo (Party)</span></button>`;
+  $("partyToggle").onclick = e => {
+    const b = e.target.closest("[data-mode]"); if(!b) return;
+    state.party = b.dataset.mode === "party";
+    if(state.party && !state.partyMates.length) state.partyMates = ["Damage"];
+    state.pick = 0; render();
+  };
+  const panel = $("partyPanel");
+  panel.className = "party-panel" + (state.party ? " open" : "");
+  if(!state.party){ panel.innerHTML = ""; panel.onclick = null; return; }
+  const n = state.partyMates.length;
+  panel.innerHTML = `
+    <div class="party-size"><span class="sub">Compañeros</span>${[1,2,3,4].map(k=>`<button data-size="${k}" class="sz cut ${n===k?'on':''}" aria-label="${k} compañeros">${k}</button>`).join("")}<span class="sub">en el grupo contigo</span></div>
+    <div class="mates-grid">${state.partyMates.map((r,i)=>`
+      <div class="mate-role cut">
+        <div class="mh"><span>Compañero ${i+1}</span><b>${r}</b></div>
+        <div class="mate-opts">${["Tank","Damage","Support"].map(x=>`<button data-mate="${i}" data-role="${x}" class="rpick cut ${r===x?'on':''}" title="${x}"><span class="ri" style="color:${ROLE_CLR[x]}">${ICONS[x]}</span>${x==="Damage"?"DPS":x}</button>`).join("")}</div>
+      </div>`).join("")}</div>`;
+  panel.onclick = e => {
+    const sz = e.target.closest("[data-size]");
+    if(sz){ setPartySize(+sz.dataset.size); state.pick = 0; render(); return; }
+    const rp = e.target.closest("[data-mate]");
+    if(rp){ state.partyMates[+rp.dataset.mate] = rp.dataset.role; state.pick = 0; render(); }
+  };
+}
+
+function afkAvatar(size="sm"){
+  return `<div class="avatar ${size} afk"><span class="afk-ic">${ICONS.Warn}</span></div>`;
+}
+function slotHTML(side,i,role,name,open){
+  const isAfk = name===AFK, h = (name && !isAfk) ? byName(name) : null;
+  const shownRole = h ? h.r : (open ? "" : role);          // en 6v6 el rol lo define el héroe elegido
+  const rc = shownRole ? ROLE_CLR[shownRole] : "var(--cy)";
+  const ico = shownRole ? ICONS[shownRole] : ICONS.Open;
+  const roleName = shownRole || "Cualquier rol";
+  const avatar = isAfk ? afkAvatar("sm") : h ? heroAvatar(h,"sm")
+    : `<div class="avatar sm empty"><span class="rico" style="color:${rc}">${ico}</span><span class="plus">+</span></div>`;
+  const filled = h || isAfk;
+  return `<div class="slot ${filled?'filled':''} ${isAfk?'afk':''} ${open?'open-slot':''}">
+    <button class="slot-main" data-side="${side}" data-i="${i}" data-role="${open ? '' : role}">
+      ${avatar}
+      <span class="sl-txt"><small style="color:${isAfk?'#f9d71a':rc}">${isAfk?`Alerta ${open?'5v6':'4v5'}`:roleName}</small><b class="ow">${isAfk?AFK:h?h.n:'Elegir héroe'}</b></span>
+    </button>${filled ? `<button class="x" data-clear="${side}:${i}" aria-label="Quitar">✕</button>`
+      : side==="team" ? `<button class="afkq" data-afk="${i}" title="Actívalo si un aliado no juega (ajusta la estrategia a ${open?'5v6':'4v5'})" aria-label="Marcar AFK / Throwing">${ICONS.Warn}<span>AFK</span></button>` : ''}</div>`;
+}
+function renderSlots(){
+  const open = isOpen();
+  const teamLayout = open ? state.team.map(()=> "") : TEAM_LAYOUT[state.role];
+  const enemyLayout = open ? state.enemy.map(()=> "") : ENEMY_LAYOUT;
+  $("team").innerHTML = teamLayout.map((r,i)=>slotHTML("team",i,r,state.team[i],open)).join("");
+  $("enemy").innerHTML = enemyLayout.map((r,i)=>slotHTML("enemy",i,r,state.enemy[i],open)).join("");
+  $("team").classList.toggle("open-q", open);
+  $("enemy").classList.toggle("open-q", open);
+  [$("team"),$("enemy")].forEach(box=>box.onclick = e=>{
+    const c = e.target.closest("[data-clear]");
+    if(c){const [sd,i] = c.dataset.clear.split(":"); state[sd][+i] = null; state.pick = 0; render(); return;}
+    const q = e.target.closest("[data-afk]");
+    if(q){state.team[+q.dataset.afk] = AFK; state.pick = 0; render(); return;}
+    const b = e.target.closest("[data-side]"); if(b) openModal(b.dataset.side, +b.dataset.i, b.dataset.role);
+  });
+}
+
+function updateBanner(){
+  const m = MAPS.find(x=>x.n===state.map), g = m ? MAP_GRAD[m.m] : ["#151b26","#2b3648"];
+  $("mapBanner").style.background = `linear-gradient(120deg,${g[0]} 0%,${g[0]}cc 45%,${g[1]}99 100%)`;
+  $("mapName").textContent = m ? m.n : "Selecciona un mapa";
+  $("mapType").textContent = m ? m.m : "—";
+  $("mapFeat").textContent = m ? m.f : "El mapa define Space, High Ground y el estilo ideal.";
+  $("mapArch").innerHTML = m ? m.a.map(a=>`<span class="arch a-${a}">${a}</span>`).join("") : "";
+}
+
+/* ---- Selector visual de mapas (agrupado por modo oficial) ---- */
+const MAP_MODES = [...new Set(MAPS.map(m => m.m))];
+const modeColor = m => (MAP_GRAD[m] ? MAP_GRAD[m][1] : "#8b97a8");
+const normTxt = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+const escTxt = s => s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const SEARCH_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>';
+function mapCardHTML(m){
+  const on = state.map === m.n;
+  return `<button type="button" class="map-card ${on?'on':''}" data-map="${m.n}" aria-pressed="${on}" style="--mc:${modeColor(m.m)}" title="${m.n} · ${m.m} · ${m.a.join(' / ')} — ${m.f}">
+    <span class="mc-check">✓</span>
+    <b class="mc-name ow">${m.n}</b>
+    <span class="mc-tags">${m.a.map(a=>`<i class="a-${a}">${a}</i>`).join("")}</span>
+  </button>`;
+}
+function renderMapPicker(){
+  const cur = MAPS.find(m => m.n === state.map), curEl = $("mapCurrent");
+  curEl.className = "map-current" + (cur ? "" : " empty");
+  curEl.innerHTML = `<span class="dot-m"></span><span>${cur ? cur.n : "Sin mapa"}</span>` +
+    (cur ? `<small>${cur.m}</small><button type="button" class="mp-clear" data-map-clear title="Quitar mapa" aria-label="Quitar mapa seleccionado">✕</button>`
+         : `<small>Elige abajo</small>`);
+  // Búsqueda rápida: por nombre de mapa o por modo de juego, sin acentos ni mayúsculas
+  const q = normTxt(mapQuery);
+  const matches = m => !q || normTxt(m.n).includes(q) || normTxt(m.m).includes(q);
+  const countIn = mo => MAPS.filter(m => m.m === mo && matches(m)).length;
+  $("mapModes").innerHTML = [`<button type="button" class="mode-tab ${mapFilter===''?'on':''}" data-mode-tab="" style="--mc:var(--or)" aria-pressed="${mapFilter===''}"><span class="mdot"></span>Todos<b>${MAPS.length}</b></button>`]
+    .concat(MAP_MODES.map(mo=>{
+      const zero = q && !countIn(mo);
+      return `<button type="button" class="mode-tab ${mapFilter===mo?'on':''} ${zero?'zero':''}" data-mode-tab="${mo}" style="--mc:${modeColor(mo)}" aria-pressed="${mapFilter===mo}" title="${zero ? "Sin coincidencias en este modo" : mo}"><span class="mdot"></span>${mo}<b>${MAPS.filter(m=>m.m===mo).length}</b></button>`;
+    })).join("");
+  const groups = (mapFilter ? [mapFilter] : MAP_MODES)
+    .map(mo => ({mo, list: MAPS.filter(m => m.m === mo && matches(m))}))
+    .filter(g => g.list.length);
+  const grid = $("mapGrid"), scroll = grid.scrollTop;
+  if(!groups.length){
+    const anyMatch = MAPS.some(matches);
+    grid.className = "map-grid no-results";
+    grid.innerHTML = `<div class="map-empty">
+      <span class="me-ic">${SEARCH_IC}</span>
+      <div><b class="ow">Sin mapas para “${escTxt(mapQuery)}”</b><p>${anyMatch ? "No hay coincidencias en el modo seleccionado." : "Prueba con otro nombre de mapa o modo de juego."}</p></div>
+      <div class="me-actions">
+        <button type="button" class="btn-sec cut ow" data-search-reset>Limpiar búsqueda</button>
+        ${mapFilter && anyMatch ? '<button type="button" class="btn-sec cut ow" data-mode-tab="">Ver todos los modos</button>' : ""}
+      </div>
+    </div>`;
+    return;
+  }
+  grid.className = "map-grid" + (mapFilter ? " single" : "");
+  grid.innerHTML = groups.map(({mo, list})=>{
+    const total = MAPS.filter(m=>m.m===mo).length;
+    return `<section class="map-group" style="--mc:${modeColor(mo)}">
+      <h3 class="map-group-h"><i class="mdot"></i>${mo}<span class="mg-count">${q ? `${list.length} de ${total}` : total} mapas</span></h3>
+      <div class="map-cards">${list.map(mapCardHTML).join("")}</div>
+    </section>`;
+  }).join("");
+  grid.scrollTop = scroll;
+}
+
+/* ---- Modal selector ---- */
+function openModal(side,i,role){
+  modalCtx = {side,i,role}; archSel = ""; $("search").value = "";
+  $("modal").classList.add("open"); drawModal(); $("search").focus();
+}
+function closeModal(){$("modal").classList.remove("open");}
+function drawModal(){
+  const {side,role} = modalCtx, q = $("search").value.toLowerCase(), used = state[side];
+  const anyRole = isOpen() || !role;
+  const rc = anyRole ? "var(--cy)" : ROLE_CLR[role];
+  const ico = anyRole ? ICONS.Open : ICONS[role];
+  $("modalTitle").innerHTML = `<span class="ri" style="color:${rc}">${ico}</span><span class="sk">Seleccionar ${anyRole ? "héroe · cualquier rol" : role}</span><span style="font-size:.8rem;color:var(--mut);font-family:Inter;text-transform:none;letter-spacing:0">· ${side==="team"?"Mi equipo":"Equipo enemigo"}${isOpen()?" · 6v6 Open Queue":""}</span>`;
+  document.querySelectorAll("#archFilter button").forEach(b=>b.className = "chip" + (b.dataset.a===archSel ? " on" : ""));
+  const afkCard = (side==="team" && !archSel && AFK.toLowerCase().includes(q))
+    ? `<button data-h="${AFK}" class="hcard afk-card cut">${afkAvatar("md")}<b class="ow">${AFK}</b><span class="afk-sub">Actívalo si un aliado no juega (ajusta la estrategia a ${isOpen()?'5v6':'4v5'})</span></button>` : "";
+  const cards = HEROES.filter(h=>(anyRole || h.r===role) && h.n.toLowerCase().includes(q) && (!archSel || h.a.includes(archSel)) && !used.includes(h.n))
+    .map(h=>`<button data-h="${h.n}" class="hcard cut">${heroAvatar(h,"md")}<b class="ow">${h.n}</b></button>`).join("");
+  $("heroGrid").innerHTML = (afkCard + cards) || '<p class="none">Sin resultados</p>';
+  $("heroGrid").onclick = e => {
+    const b = e.target.closest("[data-h]"); if(!b) return;
+    state[side][modalCtx.i] = b.dataset.h; state.pick = 0; closeModal(); render();
+  };
+}
+
+/* ---- Render principal ---- */
+function render(){
+  renderFormat(); renderRoles(); renderParty(); renderSlots(); updateBanner(); renderMapPicker();
+  const map = MAPS.find(m=>m.n===state.map) || null;
+  const partyRoles = state.party ? state.partyMates : [];
+  const afk = state.team.filter(x=>x===AFK).length;                    // compañeros AFK / Throwing
+  const afkMode = isOpen() ? "5v6" : "4v5";
+  const team = state.team.filter(x=>x && x!==AFK).map(byName);
+  const enemies = state.enemy.filter(Boolean).map(byName);
+  if(state.panic && !state.enemy.includes(state.panic)) state.panic = "";
+  const panicH = state.panic ? byName(state.panic) : null;
+  renderPanic(enemies); renderSteps(map, team.length+afk, enemies.length);
+  const taken = state.team.filter(Boolean);
+  const ranked = HEROES.filter(h=>h.r===state.role && !taken.includes(h.n))
+    .map(h=>({h,s:score(h,team,enemies,map,afk,panicH,partyRoles)})).sort((a,b)=>b.s.total-a.s.total);
+  const top = ranked.slice(0,3);
+  const R = $("results");
+  R.onclick = e => {
+    const b = e.target.closest("[data-p]"); if(b){state.pick = +b.dataset.p; render(); return;}
+    if(e.target.closest("[data-ideal-close]")){state.ideal = false; render(); return;}
+    if(e.target.closest("[data-ideal-load]")){loadIdeal(); render();}
+  };
+  const idealHTML = state.ideal ? idealCard(map) : "";
+  if(!map && !team.length && !enemies.length && !afk){
+    R.innerHTML = idealHTML + `<div class="card empty-state cut"><h2 class="ow"><span class="sk">Esperando datos de partida</span></h2>
+      <p>Las recomendaciones se actualizan en tiempo real mientras completas la selección.</p>
+      <div class="steps"><div><b>01</b>Elige el mapa y tu rol</div><div><b>02</b>Rellena tu equipo y el enemigo</div><div><b>03</b>Sigue el plan táctico</div></div></div>`;
+    return;
+  }
+  if(state.pick >= top.length) state.pick = 0;
+  const sel = top[state.pick], P = plan(sel.h, team, enemies, map, afk, panicH);
+  const win = P.bullets[P.bullets.length-1], style = P.bullets.slice(0,-1);
+  const mates = team.filter(t=>sel.h.s.includes(t.n) || t.s.includes(sel.h.n));
+  const sameStyle = team.filter(t=>t.a.includes(sel.h.a[0])).length;
+  const th = panicH || P.threat;
+  const others = enemies.filter(e=>(sel.h.b.includes(e.n) || e.c.includes(sel.h.n)) && (!th || e.n!==th.n));
+
+  // Resumen Rápido (TL;DR)
+  const t0 = top[0].h, th0 = threatOf(t0, enemies);
+  const prot = team.find(t=>t0.s.includes(t.n) || t.s.includes(t0.n)) || team.find(t=>t.r==="Support") || team[0];
+  const hint = {Poke:"Hold High Ground",Dive:"Flank & Cooldown tracking",Brawl:"Hold Space"}[t0.a[0]];
+  const focus = panicH ? `Tu prioridad es neutralizar a <b>${panicH.n}</b> con un Hard Counter y mantener la sinergia de tu equipo.`
+    : th0 && prot ? `Tu prioridad es negar el espacio a <b>${th0.n}</b> y proteger a tu <b>${prot.n}</b>.`
+    : th0 ? `Tu prioridad es negar el espacio a <b>${th0.n}</b> y guardar <b>${t0.cd}</b> para su engage.`
+    : prot ? `Tu prioridad es proteger a tu <b>${prot.n}</b> y ganar Space${map?` en ${map.n}`:""}.`
+    : "Completa tu equipo y los rivales para definir el foco; por ahora prioriza Space y Cooldown tracking.";
+
+  R.innerHTML = idealHTML + `
+    <div class="card tldr cut">
+      <h2 class="ow"><span class="sk">Resumen Rápido de Partida · TL;DR</span></h2>
+      <p class="sub">Léelo en 3 segundos antes de que abran las puertas del spawn.</p>
+      <div class="tl-row"><span class="tl-k">Pick #1</span><span class="tl-v">Juega <b>${t0.n}</b> en estilo <b>${t0.a[0]} / ${hint}</b>.</span></div>
+      <div class="tl-row"><span class="tl-k or">Foco</span><span class="tl-v">${focus}</span></div>
+      ${partyRoles.length ? `<div class="tl-alert pt"><span class="ri">${ICONS.Support}</span><span><b>Modo Grupo activo:</b> sinergia de rol priorizada con ${partyRoles.map(r=>`<b>${r}</b>`).join(" + ")}.</span></div>` : ""}
+      ${afk ? `<div class="tl-alert"><span class="ri">${ICONS.Warn}</span><span><b>Modo ${afkMode} activo:</b> Prioriza supervivencia y picks aislados, no fuerces peleas largas.</span></div>` : ""}
+      ${panicH ? `<div class="tl-alert pn"><span class="ri">${ICONS.Warn}</span><span><b>Mid-Match Swap activo:</b> priorizando el Hard Counter de ${panicH.n}; la sinergia de tu equipo no cambia.</span></div>` : ""}
+    </div>
+
+    <div class="card" style="padding:10px;display:flex;flex-direction:column;gap:8px">
+      <div class="lbl" style="padding:0 2px"><span>Top 3 recomendados · ${state.role}</span></div>
+      <p class="sub" style="margin:-4px 2px 2px">Los 3 héroes con mejor afinidad con tu partida. Toca uno para ver su plan.</p>
+      ${top.map((x,i)=>`
+      <button data-p="${i}" class="rec cut ${i===state.pick?'on':''}">
+        <span class="rank ow">#${i+1}</span>
+        ${heroAvatar(x.h,"md")}
+        <span style="min-width:0">
+          <span class="rec-name ow" style="display:block"><span class="sk">${x.h.n}</span></span>
+          <span class="badges" style="margin-top:3px">${badges(x.h)}</span>
+          <span class="bar" style="display:block"><i data-w="${pct(x.s.total)}"></i></span>
+          <span class="brk">SINERGIA ${x.s.syn.toFixed(1)} · COUNTERS ${x.s.ctr.toFixed(1)} · MAPA ${x.s.mp.toFixed(1)}${partyRoles.length ? ` · GRUPO ${x.s.pt>=0?"+":""}${x.s.pt.toFixed(1)}` : ""}${afk ? ` · ${afkMode.toUpperCase()} ${x.s.af>=0?"+":""}${x.s.af.toFixed(1)}` : ""}${panicH ? ` · SWAP ${x.s.pn>=0?"+":""}${x.s.pn.toFixed(1)}` : ""}</span>
+        </span>
+        <span class="pct">${pct(x.s.total)}<small>%</small></span>
+      </button>`).join("")}
+    </div>
+
+    <div class="card sec">
+      <h3 class="ow"><span class="ri">${ICONS.Damage}</span>Game Style · ${sel.h.n}</h3>
+      <p class="sub">Cómo jugar este héroe en esta partida.</p>
+      <ul class="tac">${style.map(b=>`<li>${b}</li>`).join("")}</ul>
+    </div>
+
+    <div class="card sec win">
+      <h3 class="ow"><span class="ri">${ICONS.Tank}</span>Win Condition</h3>
+      <p class="sub">Lo que tu equipo debe lograr para ganar.</p>
+      <ul class="tac"><li>${win.replace(/^<b>Win condition:<\/b>\s*/,"")}</li></ul>
+    </div>
+
+    <div class="card sec syn">
+      <h3 class="ow"><span class="ri">${ICONS.Support}</span>Synergies</h3>
+      <p class="sub">Compañeros con los que encaja mejor este héroe.</p>
+      ${mates.length ? `<div class="mates">${mates.map(t=>`<div class="mate">${heroAvatar(t,"sm")}<b class="ow">${t.n}</b></div>`).join("")}</div>`
+        : `<p class="note">${team.length ? "Sin sinergias directas con tus compañeros actuales." : "Añade compañeros para ver sinergias directas."}</p>`}
+      ${team.length ? `<p class="note" style="margin-top:8px">${sameStyle} de ${team.length} compañeros comparten el estilo <b style="color:#fff">${sel.h.a[0]}</b>.</p>` : ""}
+    </div>
+
+    <div class="card sec thr">
+      <h3 class="ow"><span class="ri">${ICONS.Damage}</span>Alertas / Amenazas</h3>
+      <p class="sub">El rival más peligroso para este pick y cómo mitigarlo.</p>
+      ${th ? `<div class="thr-main">${heroAvatar(th,"md")}
+        <p class="note" style="color:#cdd5e0"><b style="color:#fff">${th.n}</b> (${th.r}) ${panicH ? "está dominando la partida (Mid-Match Swap)" : `es la mayor amenaza para ${sel.h.n}`}. Mitigación: ${MITIG[th.t.find(t=>MITIG[t]) || "_"]}.</p></div>
+        ${others.length ? `<div class="chips">${others.map(e=>`<span class="chip">${e.n}</span>`).join("")}</div><p class="note" style="margin-top:6px">Otros counters presentes.</p>` : ""}`
+      : `<p class="note">${enemies.length ? "Sin counters directos entre los enemigos elegidos para este héroe." : "Añade héroes enemigos para detectar amenazas."}</p>`}
+    </div>`;
+
+  setTimeout(()=>R.querySelectorAll(".bar i").forEach(i=>i.style.width = i.dataset.w + "%"), 30);
+}
+
+init();
+</script>
+</body>
+</html>
